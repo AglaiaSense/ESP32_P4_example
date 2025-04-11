@@ -1,0 +1,58 @@
+dependencies:
+  avi_player:
+    dependencies: []
+    source:
+      path: E:\03-MS500-P4\01.code\01_usb_dual_uvc_device\components\avi_player
+      type: local
+    version: 1.0.0
+  espressif/cmake_utilities:
+    component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.1'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 0.5.3
+  espressif/tinyusb:
+    component_hash: 0f96faa5e29d5a04553ba7050b9051c1f6b549b9340681eb7afdda419a8dff2e
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32s2
+    - esp32s3
+    - esp32p4
+    version: 0.18.0~1
+  idf:
+    source:
+      type: idf
+    version: 5.4.0
+  lvgl/lvgl:
+    component_hash: 2409fdc84e9766d2a18afd84b051aef3f838348136cdb1c10ac2e8bcdb012bf6
+    dependencies: []
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 9.2.0
+  usb_device_uvc:
+    dependencies: []
+    source:
+      path: E:\03-MS500-P4\01.code\01_usb_dual_uvc_device\components\usb_device_uvc
+      type: local
+    version: 1.1.2
+direct_dependencies:
+- avi_player
+- espressif/cmake_utilities
+- espressif/tinyusb
+- idf
+- lvgl/lvgl
+- usb_device_uvc
+manifest_hash: 9c80f5103f27000afad5f5b2b2cf2015648ed8a2e45962e08ca036583dcf5aa3
+target: esp32p4
+version: 2.0.0
