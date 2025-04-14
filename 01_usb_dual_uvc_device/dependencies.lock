@@ -2,7 +2,7 @@ dependencies:
   avi_player:
     dependencies: []
     source:
-      path: E:\03-MS500-P4\01.code\01_usb_dual_uvc_device\components\avi_player
+      path: E:\03-MS500-P4\01.project_example\01_usb_dual_uvc_device\components\avi_player
       type: local
     version: 1.0.0
   espressif/cmake_utilities:
@@ -16,7 +16,7 @@ dependencies:
       type: service
     version: 0.5.3
   espressif/tinyusb:
-    component_hash: 0f96faa5e29d5a04553ba7050b9051c1f6b549b9340681eb7afdda419a8dff2e
+    component_hash: 10703da2c3cd39a944711ee3d320c6dda54debabf13b4b933a7c90daf102372b
     dependencies:
     - name: idf
       require: private
@@ -28,7 +28,7 @@ dependencies:
     - esp32s2
     - esp32s3
     - esp32p4
-    version: 0.18.0~1
+    version: 0.18.0~2
   idf:
     source:
       type: idf
@@ -43,7 +43,7 @@ dependencies:
   usb_device_uvc:
     dependencies: []
     source:
-      path: E:\03-MS500-P4\01.code\01_usb_dual_uvc_device\components\usb_device_uvc
+      path: E:\03-MS500-P4\01.project_example\01_usb_dual_uvc_device\components\usb_device_uvc
       type: local
     version: 1.1.2
 direct_dependencies:

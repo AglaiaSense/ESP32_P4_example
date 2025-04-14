@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "*.lua": "lua",
-        "*.cpp": "cpp",
-        "usb_device_uvc.h": "c"
-    }
-}
