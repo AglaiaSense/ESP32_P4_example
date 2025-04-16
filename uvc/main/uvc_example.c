@@ -208,6 +208,7 @@ static esp_err_t video_start_cb(uvc_format_t uvc_format, int width, int height, 
 
     ESP_LOGD(TAG, "UVC start");
 
+    #if 1
     if (uvc->format == V4L2_PIX_FMT_JPEG) {
         int fmt_index = 0;
         const uint32_t jpeg_input_formats[] = {
@@ -244,8 +245,14 @@ static esp_err_t video_start_cb(uvc_format_t uvc_format, int width, int height, 
         // capture_fmt = V4L2_PIX_FMT_YUV420;
         capture_fmt = V4L2_PIX_FMT_YUYV;
     }
+    #endif
+
+    // capture_fmt = V4L2_PIX_FMT_YVU420;
+
 
     /* Configure camera interface capture stream */
+
+    printf("capture_fmt: %ld\n", capture_fmt);
 
     memset(&format, 0, sizeof(format));
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

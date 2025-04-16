@@ -4,5 +4,6 @@ dependencies:
     path: "../components/esp_video"
   usb_device_uvc:
     version: "1.1.*"
-  espressif/tinyusb:
-    version: "0.15.0~10"
+    override_path: "../components/usb_device_uvc"
+  # espressif/tinyusb:
+  #   version: "0.15.0~10"
