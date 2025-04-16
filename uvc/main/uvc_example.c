@@ -37,7 +37,7 @@
  #define UVC_OUTPUT_FORMAT   V4L2_PIX_FMT_H264
  #endif
  
- #define BUFFER_COUNT        2
+ #define BUFFER_COUNT        4
  
  typedef struct uvc {
      int cap_fd;
@@ -52,7 +52,6 @@
  
  static const char *TAG = "example";
  
- #if CONFIG_EXAMPLE_CAM_SENSOR_MIPI_CSI
  static const esp_video_init_csi_config_t csi_config[] = {
      {
          .sccb_config = {
@@ -68,45 +67,10 @@
          .pwdn_pin  = CONFIG_EXAMPLE_MIPI_CSI_CAM_SENSOR_PWDN_PIN,
      },
  };
- #endif
- 
- #if CONFIG_EXAMPLE_CAM_SENSOR_DVP
- static const esp_video_init_dvp_config_t dvp_config[] = {
-     {
-         .sccb_config = {
-             .init_sccb = true,
-             .i2c_config = {
-                 .port      = CONFIG_EXAMPLE_DVP_SCCB_I2C_PORT,
-                 .scl_pin   = CONFIG_EXAMPLE_DVP_SCCB_I2C_SCL_PIN,
-                 .sda_pin   = CONFIG_EXAMPLE_DVP_SCCB_I2C_SDA_PIN,
-             },
-             .freq      = CONFIG_EXAMPLE_DVP_SCCB_I2C_FREQ,
-         },
-         .reset_pin = CONFIG_EXAMPLE_DVP_CAM_SENSOR_RESET_PIN,
-         .pwdn_pin  = CONFIG_EXAMPLE_DVP_CAM_SENSOR_PWDN_PIN,
-         .dvp_pin = {
-             .data_width = CAM_CTLR_DATA_WIDTH_8,
-             .data_io = {
-                 CONFIG_EXAMPLE_DVP_D0_PIN, CONFIG_EXAMPLE_DVP_D1_PIN, CONFIG_EXAMPLE_DVP_D2_PIN, CONFIG_EXAMPLE_DVP_D3_PIN,
-                 CONFIG_EXAMPLE_DVP_D4_PIN, CONFIG_EXAMPLE_DVP_D5_PIN, CONFIG_EXAMPLE_DVP_D6_PIN, CONFIG_EXAMPLE_DVP_D7_PIN,
-             },
-             .vsync_io = CONFIG_EXAMPLE_DVP_VSYNC_PIN,
-             .de_io = CONFIG_EXAMPLE_DVP_DE_PIN,
-             .pclk_io = CONFIG_EXAMPLE_DVP_PCLK_PIN,
-             .xclk_io = CONFIG_EXAMPLE_DVP_XCLK_PIN,
-         },
-         .xclk_freq = CONFIG_EXAMPLE_DVP_XCLK_FREQ,
-     },
- };
- #endif
  
  static const esp_video_init_config_t cam_config = {
- #if CONFIG_EXAMPLE_CAM_SENSOR_MIPI_CSI
      .csi      = csi_config,
- #endif
- #if CONFIG_EXAMPLE_CAM_SENSOR_DVP
-     .dvp      = dvp_config,
- #endif
+
  };
  
  static void print_video_device_info(const struct v4l2_capability *capability)
@@ -245,7 +209,9 @@
      uvc_t *uvc = (uvc_t *)cb_ctx;
      uint32_t capture_fmt = 0;
  
-     ESP_LOGD(TAG, "UVC start");
+     ESP_LOGI(TAG, "UVC start");
+     printf("--------------video_start_cb------------------\n");
+     
  
      if (uvc->format == V4L2_PIX_FMT_JPEG) {
          int fmt_index = 0;
@@ -270,6 +236,9 @@
              for (int i = 0; i < jpeg_input_formats_num; i++) {
                  if (jpeg_input_formats[i] == fmtdesc.pixelformat) {
                      capture_fmt = jpeg_input_formats[i];
+                     printf("--------------------------------\n");
+
+                     printf("index:%d\n",i);
                      break;
                  }
              }
@@ -279,8 +248,11 @@
              ESP_LOGI(TAG, "The camera sensor output pixel format is not supported by JPEG");
              return ESP_ERR_NOT_SUPPORTED;
          }
+         printf("V4L2_PIX_FMT_JPEG\n");
      } else {
-         capture_fmt = V4L2_PIX_FMT_YUV420;
+        printf("V4L2_PIX_FMT_YUV420\n");
+
+         capture_fmt = V4L2_PIX_FMT_YUYV;
      }
  
      /* Configure camera interface capture stream */
@@ -370,7 +342,7 @@
      int type;
      uvc_t *uvc = (uvc_t *)cb_ctx;
  
-     ESP_LOGD(TAG, "UVC stop");
+     ESP_LOGI(TAG, "UVC stop");
  
      type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
      ioctl(uvc->cap_fd, VIDIOC_STREAMOFF, &type);
@@ -422,7 +394,8 @@
      uvc->fb.width = format.fmt.pix.width;
      uvc->fb.height = format.fmt.pix.height;
      uvc->fb.format = format.fmt.pix.pixelformat == V4L2_PIX_FMT_JPEG ? UVC_FORMAT_JPEG : UVC_FORMAT_H264;
- 
+
+
      us = esp_timer_get_time();
      uvc->fb.timestamp.tv_sec = us / 1000000UL;;
      uvc->fb.timestamp.tv_usec = us % 1000000UL;
@@ -446,6 +419,7 @@
  static esp_err_t init_uvc(uvc_t *uvc)
  {
      int index = 0;
+     uint32_t index22 = 1;
      uvc_device_config_t config = {
          .start_cb     = video_start_cb,
          .fb_get_cb    = video_fb_get_cb,
@@ -469,14 +443,18 @@
      return ESP_OK;
  }
  
+ 
  void app_main(void)
  {
      uvc_t *uvc = calloc(1, sizeof(uvc_t));
-     assert(uvc);
- 
+    
+     printf("-----------------------------------\n");
+     
      ESP_ERROR_CHECK(esp_video_init(&cam_config));
      ESP_ERROR_CHECK(init_capture_video(uvc));
      ESP_ERROR_CHECK(init_codec_video(uvc));
      ESP_ERROR_CHECK(init_uvc(uvc));
+
+
  }
  
