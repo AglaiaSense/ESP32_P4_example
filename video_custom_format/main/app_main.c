@@ -4,22 +4,21 @@
  * SPDX-License-Identifier: ESPRESSIF MIT
  */
 
-#include <string.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <sys/errno.h>
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_timer.h"
-#include "linux/videodev2.h"
 #include "esp_video_init.h"
 #include "esp_video_ioctl.h"
+#include "linux/videodev2.h"
+#include <fcntl.h>
+#include <string.h>
+#include <sys/errno.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/param.h>
 
 // #include "app_sc2336_custom_settings.h"
 #include "app_ov5647_custom_settings.h"
-
 
 #define MEMORY_TYPE V4L2_MEMORY_MMAP
 #define BUFFER_COUNT 2
@@ -27,65 +26,29 @@
 
 static const char *TAG = "example";
 
-#if CONFIG_EXAMPLE_ENABLE_MIPI_CSI_CAM_SENSOR
 static const esp_video_init_csi_config_t csi_config[] = {
     {
         .sccb_config = {
             .init_sccb = true,
             .i2c_config = {
-                .port      = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_PORT,
-                .scl_pin   = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_SCL_PIN,
-                .sda_pin   = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_SDA_PIN,
+                .port = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_PORT,
+                .scl_pin = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_SCL_PIN,
+                .sda_pin = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_SDA_PIN,
             },
             .freq = CONFIG_EXAMPLE_MIPI_CSI_SCCB_I2C_FREQ,
         },
         .reset_pin = CONFIG_EXAMPLE_MIPI_CSI_CAM_SENSOR_RESET_PIN,
-        .pwdn_pin  = CONFIG_EXAMPLE_MIPI_CSI_CAM_SENSOR_PWDN_PIN,
+        .pwdn_pin = CONFIG_EXAMPLE_MIPI_CSI_CAM_SENSOR_PWDN_PIN,
     },
 };
-#endif
-
-#if CONFIG_EXAMPLE_ENABLE_DVP_CAM_SENSOR
-static const esp_video_init_dvp_config_t dvp_config[] = {
-    {
-        .sccb_config = {
-            .init_sccb = true,
-            .i2c_config = {
-                .port      = CONFIG_EXAMPLE_DVP_SCCB_I2C_PORT,
-                .scl_pin   = CONFIG_EXAMPLE_DVP_SCCB_I2C_SCL_PIN,
-                .sda_pin   = CONFIG_EXAMPLE_DVP_SCCB_I2C_SDA_PIN,
-            },
-            .freq      = CONFIG_EXAMPLE_DVP_SCCB_I2C_FREQ,
-        },
-        .reset_pin = CONFIG_EXAMPLE_DVP_CAM_SENSOR_RESET_PIN,
-        .pwdn_pin  = CONFIG_EXAMPLE_DVP_CAM_SENSOR_PWDN_PIN,
-        .dvp_pin = {
-            .data_width = CAM_CTLR_DATA_WIDTH_8,
-            .data_io = {
-                CONFIG_EXAMPLE_DVP_D0_PIN, CONFIG_EXAMPLE_DVP_D1_PIN, CONFIG_EXAMPLE_DVP_D2_PIN, CONFIG_EXAMPLE_DVP_D3_PIN,
-                CONFIG_EXAMPLE_DVP_D4_PIN, CONFIG_EXAMPLE_DVP_D5_PIN, CONFIG_EXAMPLE_DVP_D6_PIN, CONFIG_EXAMPLE_DVP_D7_PIN,
-            },
-            .vsync_io = CONFIG_EXAMPLE_DVP_VSYNC_PIN,
-            .de_io = CONFIG_EXAMPLE_DVP_DE_PIN,
-            .pclk_io = CONFIG_EXAMPLE_DVP_PCLK_PIN,
-            .xclk_io = CONFIG_EXAMPLE_DVP_XCLK_PIN,
-        },
-        .xclk_freq = CONFIG_EXAMPLE_DVP_XCLK_FREQ,
-    },
-};
-#endif
 
 static const esp_video_init_config_t cam_config = {
-#if CONFIG_EXAMPLE_ENABLE_MIPI_CSI_CAM_SENSOR
-    .csi      = csi_config,
-#endif
-#if CONFIG_EXAMPLE_ENABLE_DVP_CAM_SENSOR
-    .dvp      = dvp_config,
-#endif
+
+    .csi = csi_config,
+
 };
 
-static esp_err_t camera_capture_stream(void)
-{
+static esp_err_t camera_capture_stream(void) {
     int fd;
     esp_err_t ret;
     int fmt_index = 0;
@@ -99,18 +62,21 @@ static esp_err_t camera_capture_stream(void)
 
     const int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
+    // 打开视频设备
     fd = open("/dev/video0", O_RDONLY);
     if (fd < 0) {
         ESP_LOGE(TAG, "failed to open device");
         return ESP_FAIL;
     }
 
+    // 查询设备能力
     if (ioctl(fd, VIDIOC_QUERYCAP, &capability)) {
         ESP_LOGE(TAG, "failed to get capability");
         ret = ESP_FAIL;
         goto exit_0;
     }
 
+    // 打印设备能力信息
     ESP_LOGI(TAG, "version: %d.%d.%d", (uint16_t)(capability.version >> 16),
              (uint8_t)(capability.version >> 8),
              (uint8_t)capability.version);
@@ -152,12 +118,13 @@ static esp_err_t camera_capture_stream(void)
         }
     }
 
-    /* Set custom register configuration */
+    // 设置自定义寄存器配置
     if (ioctl(fd, VIDIOC_S_SENSOR_FMT, &custom_format_info) != 0) {
         ret = ESP_FAIL;
         goto exit_0;
     }
 
+    // 获取视频格式
     memset(&init_format, 0, sizeof(struct v4l2_format));
     init_format.type = type;
     if (ioctl(fd, VIDIOC_G_FMT, &init_format) != 0) {
@@ -173,9 +140,10 @@ static esp_err_t camera_capture_stream(void)
 
     ESP_LOGI(TAG, "Capture %s format frames for %d seconds:", (char *)fmtdesc.description, CAPTURE_SECONDS);
 
+    // 请求缓冲区
     memset(&req, 0, sizeof(req));
-    req.count  = BUFFER_COUNT;
-    req.type   = type;
+    req.count = BUFFER_COUNT;
+    req.type = type;
     req.memory = MEMORY_TYPE;
     if (ioctl(fd, VIDIOC_REQBUFS, &req) != 0) {
         ESP_LOGE(TAG, "failed to require buffer");
@@ -183,13 +151,14 @@ static esp_err_t camera_capture_stream(void)
         goto exit_0;
     }
 
+    // 映射缓冲区并将其加入队列
     for (int i = 0; i < BUFFER_COUNT; i++) {
         struct v4l2_buffer buf;
 
         memset(&buf, 0, sizeof(buf));
-        buf.type        = type;
-        buf.memory      = MEMORY_TYPE;
-        buf.index       = i;
+        buf.type = type;
+        buf.memory = MEMORY_TYPE;
+        buf.index = i;
         if (ioctl(fd, VIDIOC_QUERYBUF, &buf) != 0) {
             ESP_LOGE(TAG, "failed to query buffer");
             ret = ESP_FAIL;
@@ -211,18 +180,20 @@ static esp_err_t camera_capture_stream(void)
         }
     }
 
+    // 开始视频流
     if (ioctl(fd, VIDIOC_STREAMON, &type) != 0) {
         ESP_LOGE(TAG, "failed to start stream");
         ret = ESP_FAIL;
         goto exit_0;
     }
 
+    // 捕获视频帧
     frame_count = 0;
     frame_size = 0;
     int64_t start_time_us = esp_timer_get_time();
     while (esp_timer_get_time() - start_time_us < (CAPTURE_SECONDS * 1000 * 1000)) {
         memset(&buf, 0, sizeof(buf));
-        buf.type   = type;
+        buf.type = type;
         buf.memory = MEMORY_TYPE;
         if (ioctl(fd, VIDIOC_DQBUF, &buf) != 0) {
             ESP_LOGE(TAG, "failed to receive video frame");
@@ -241,12 +212,14 @@ static esp_err_t camera_capture_stream(void)
         frame_count++;
     }
 
+    // 停止视频流
     if (ioctl(fd, VIDIOC_STREAMOFF, &type) != 0) {
         ESP_LOGE(TAG, "failed to stop stream");
         ret = ESP_FAIL;
         goto exit_0;
     }
 
+    // 打印捕获的帧信息
     ESP_LOGI(TAG, "\twidth:  %" PRIu32, init_format.fmt.pix.width);
     ESP_LOGI(TAG, "\theight: %" PRIu32, init_format.fmt.pix.height);
     ESP_LOGI(TAG, "\tsize:   %" PRIu32, frame_size / frame_count);
@@ -259,16 +232,17 @@ exit_0:
     return ret;
 }
 
-void app_main(void)
-{
+void app_main(void) {
     esp_err_t ret = ESP_OK;
 
+    // 初始化摄像头
     ret = esp_video_init(&cam_config);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Camera init failed with error 0x%x", ret);
         return;
     }
 
+    // 开始摄像头捕获流
     ret = camera_capture_stream();
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Camera capture stream failed with error 0x%x", ret);

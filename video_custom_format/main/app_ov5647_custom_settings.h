@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: ESPRESSIF MIT
  */
 
- #pragma once
+#pragma once
 
- #include <stdint.h>
- #include "esp_cam_sensor_types.h"
- #include "ov5647_types.h"
- 
- #ifdef __cplusplus
- extern "C" {
- #endif
- 
- /* Custom register list */
- static const ov5647_reginfo_t ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps[] = {
+#include "esp_cam_sensor_types.h"
+#include "ov5647_types.h"
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Custom register list */
+static const ov5647_reginfo_t ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps[] = {
     {0x3034, 0x18}, // set RAW format
     {0x3035, 0x41}, // system clk div
     {0x3036, ((100000000ULL * 8 * 4) / 25000000)},
@@ -48,10 +48,10 @@
     {0x3c01, 0x80},
     {0x3c00, 0x40},
     {0x3b07, 0x0c},
-    //HTS line exposure time in # of pixels
+    // HTS line exposure time in # of pixels
     {0x380c, (1896 >> 8) & 0x1F},
     {0x380d, 1896 & 0xFF},
-    //VTS frame exposure time in # lines
+    // VTS frame exposure time in # lines
     {0x380e, (984 >> 8) & 0xFF},
     {0x380f, 984 & 0xFF},
     {0x3814, 0x31},
@@ -128,40 +128,37 @@
     {0x4051, 0x8f},
     {0xffff, 0x00},
 };
- 
- /* If you want to use the baseboard's ISP, provide ISP info */
- static const esp_cam_sensor_isp_info_t custom_fmt_isp_info = {
-     .isp_v1_info = {
-         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 81666700,
-         .vts = 1896,
-         .hts = 984,
-         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-     }
- };
- 
- /*Provides the description of the initializer list.
-  *Note that the description of the format must be `static const` type */
- static const esp_cam_sensor_format_t custom_format_info = {
-     .name = "MIPI_2lane_24Minput_RAW8_800x800_50fps",
-     .format = ESP_CAM_SENSOR_PIXFORMAT_RAW8,
-     .port = ESP_CAM_SENSOR_MIPI_CSI,
-     .xclk = 24000000,
-     .width = 800,
-     .height = 800,
-     .regs = ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps,
-     .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps),
-     .fps = 50,
-     .isp_info = &custom_fmt_isp_info,
-     .mipi_info = {
-         .mipi_clk =  (100000000ULL * 4) ,
-         .lane_num = 2,
-         .line_sync_en = true,
-     },
-     .reserved = NULL,
- };
- 
- #ifdef __cplusplus
- }
- #endif
- 
+
+/* 如果你想使用底板的ISP，请提供ISP信息 */
+static const esp_cam_sensor_isp_info_t custom_fmt_isp_info = {
+    .isp_v1_info = {
+        .version = SENSOR_ISP_INFO_VERSION_DEFAULT, // ISP信息版本
+        .pclk = 81666700,                           // 像素时钟频率
+        .vts = 1896,                                // 垂直总尺寸
+        .hts = 984,                                 // 水平总尺寸
+        .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,    // Bayer格式类型
+    }};
+
+/* 提供初始化列表的描述。
+ * 注意，格式的描述必须是`static const`类型 */
+static const esp_cam_sensor_format_t custom_format_info = {
+    .name = "MIPI_2lane_24Minput_RAW8_800x800_50fps",                        // 格式名称
+    .format = ESP_CAM_SENSOR_PIXFORMAT_RAW8,                                 // 像素格式
+    .port = ESP_CAM_SENSOR_MIPI_CSI,                                         // 传感器接口类型
+    .xclk = 24000000,                                                        // 外部时钟频率
+    .width = 800,                                                            // 图像宽度
+    .height = 800,                                                           // 图像高度
+    .regs = ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps,                  // 寄存器配置数组
+    .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps), // 寄存器配置数组大小
+    .fps = 50,                                                               // 帧率
+    .isp_info = &custom_fmt_isp_info,                                        // ISP信息指针
+    .mipi_info = {
+        .mipi_clk = (100000000ULL * 4), // MIPI时钟频率
+        .lane_num = 2,                  // MIPI通道数
+        .line_sync_en = true,           // 行同步使能
+    },
+    .reserved = NULL, // 保留字段
+};
+#ifdef __cplusplus
+}
+#endif
