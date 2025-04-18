@@ -13,27 +13,27 @@
 
 #include "esp_cam_sensor.h"
 #include "esp_cam_sensor_detect.h"
-#include "ov5647_settings.h"
-#include "ov5647.h"
+#include "imx500_settings.h"
+#include "imx500.h"
 
-#define OV5647_IO_MUX_LOCK(mux)
-#define OV5647_IO_MUX_UNLOCK(mux)
-#define OV5647_ENABLE_OUT_CLOCK(pin,clk)
-#define OV5647_DISABLE_OUT_CLOCK(pin)
+#define IMX500_IO_MUX_LOCK(mux)
+#define IMX500_IO_MUX_UNLOCK(mux)
+#define IMX500_ENABLE_OUT_CLOCK(pin,clk)
+#define IMX500_DISABLE_OUT_CLOCK(pin)
 
-#define OV5647_PID         0x5647
-#define OV5647_SENSOR_NAME "OV5647"
-#define OV5647_AE_TARGET_DEFAULT (0x50)
+#define IMX500_PID         0x0
+#define IMX500_SENSOR_NAME "IMX500"
+#define IMX500_AE_TARGET_DEFAULT (0x50)
 
 #ifndef portTICK_RATE_MS
 #define portTICK_RATE_MS portTICK_PERIOD_MS
 #endif
 #define delay_ms(ms)  vTaskDelay((ms > portTICK_PERIOD_MS ? ms/ portTICK_PERIOD_MS : 1))
-#define OV5647_SUPPORT_NUM CONFIG_CAMERA_OV5647_MAX_SUPPORT
+#define IMX500_SUPPORT_NUM CONFIG_CAMERA_IMX500_MAX_SUPPORT
 
-static const char *TAG = "ov5647";
+static const char *TAG = "imx500";
 
-static const esp_cam_sensor_isp_info_t ov5647_isp_info[] = {
+static const esp_cam_sensor_isp_info_t imx500_isp_info[] = {
     {
         .isp_v1_info = {
             .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
@@ -81,7 +81,7 @@ static const esp_cam_sensor_isp_info_t ov5647_isp_info[] = {
     },
 };
 
-static const esp_cam_sensor_format_t ov5647_format_info[] = {
+static const esp_cam_sensor_format_t imx500_format_info[] = {
     {
         .name = "MIPI_2lane_24Minput_RAW8_800x1280_50fps",
         .format = ESP_CAM_SENSOR_PIXFORMAT_RAW8,
@@ -89,14 +89,14 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
         .xclk = 24000000,
         .width = 800,
         .height = 1280,
-        .regs = ov5647_input_24M_MIPI_2lane_raw8_800x1280_50fps,
-        .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw8_800x1280_50fps),
+        .regs = imx500_input_24M_MIPI_2lane_raw8_800x1280_50fps,
+        .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x1280_50fps),
         .fps = 50,
-        .isp_info = &ov5647_isp_info[0],
+        .isp_info = &imx500_isp_info[0],
         .mipi_info = {
-            .mipi_clk = OV5647_MIPI_CSI_LINE_RATE_800x1280_50FPS,
+            .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_800x1280_50FPS,
             .lane_num = 2,
-            .line_sync_en = CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? true : false,
+            .line_sync_en = CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? true : false,
         },
         .reserved = NULL,
     },
@@ -107,14 +107,14 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
         .xclk = 24000000,
         .width = 800,
         .height = 640,
-        .regs = ov5647_input_24M_MIPI_2lane_raw8_800x640_50fps,
-        .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw8_800x640_50fps),
+        .regs = imx500_input_24M_MIPI_2lane_raw8_800x640_50fps,
+        .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x640_50fps),
         .fps = 50,
-        .isp_info = &ov5647_isp_info[1],
+        .isp_info = &imx500_isp_info[1],
         .mipi_info = {
-            .mipi_clk = OV5647_MIPI_CSI_LINE_RATE_800x640_50FPS,
+            .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_800x640_50FPS,
             .lane_num = 2,
-            .line_sync_en = CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? true : false,
+            .line_sync_en = CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? true : false,
         },
         .reserved = NULL,
     },
@@ -125,14 +125,14 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
         .xclk = 24000000,
         .width = 800,
         .height = 800,
-        .regs = ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps,
-        .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw8_800x800_50fps),
+        .regs = imx500_input_24M_MIPI_2lane_raw8_800x800_50fps,
+        .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x800_50fps),
         .fps = 50,
-        .isp_info = &ov5647_isp_info[2],
+        .isp_info = &imx500_isp_info[2],
         .mipi_info = {
-            .mipi_clk = OV5647_MIPI_CSI_LINE_RATE_800x800_50FPS,
+            .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_800x800_50FPS,
             .lane_num = 2,
-            .line_sync_en = CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? true : false,
+            .line_sync_en = CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? true : false,
         },
         .reserved = NULL,
     },
@@ -143,14 +143,14 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
         .xclk = 24000000,
         .width = 1920,
         .height = 1080,
-        .regs = ov5647_input_24M_MIPI_2lane_raw10_1920x1080_30fps,
-        .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw10_1920x1080_30fps),
+        .regs = imx500_input_24M_MIPI_2lane_raw10_1920x1080_30fps,
+        .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw10_1920x1080_30fps),
         .fps = 30,
-        .isp_info = &ov5647_isp_info[3],
+        .isp_info = &imx500_isp_info[3],
         .mipi_info = {
-            .mipi_clk = OV5647_MIPI_CSI_LINE_RATE_1920x1080_30FPS,
+            .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_1920x1080_30FPS,
             .lane_num = 2,
-            .line_sync_en = CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? true : false,
+            .line_sync_en = CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? true : false,
         },
         .reserved = NULL,
     },
@@ -161,37 +161,37 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
         .xclk = 24000000,
         .width = 1280,
         .height = 960,
-        .regs = ov5647_input_24M_MIPI_2lane_raw10_1280x960_45fps,
-        .regs_size = ARRAY_SIZE(ov5647_input_24M_MIPI_2lane_raw10_1280x960_45fps),
+        .regs = imx500_input_24M_MIPI_2lane_raw10_1280x960_45fps,
+        .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw10_1280x960_45fps),
         .fps = 45,
-        .isp_info = &ov5647_isp_info[4],
+        .isp_info = &imx500_isp_info[4],
         .mipi_info = {
-            .mipi_clk = OV5647_MIPI_CSI_LINE_RATE_1280x960_45FPS,
+            .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_1280x960_45FPS,
             .lane_num = 2,
-            .line_sync_en = CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? true : false,
+            .line_sync_en = CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? true : false,
         },
         .reserved = NULL,
     },
 };
 
-static esp_err_t ov5647_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf)
+static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf)
 {
     return esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
 }
 
-static esp_err_t ov5647_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data)
+static esp_err_t imx500_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data)
 {
     return esp_sccb_transmit_reg_a16v8(sccb_handle, reg, data);
 }
 
 /* write a array of registers */
-static esp_err_t ov5647_write_array(esp_sccb_io_handle_t sccb_handle, const ov5647_reginfo_t *regarray)
+static esp_err_t imx500_write_array(esp_sccb_io_handle_t sccb_handle, const imx500_reginfo_t *regarray)
 {
     int i = 0;
     esp_err_t ret = ESP_OK;
-    while ((ret == ESP_OK) && regarray[i].reg != OV5647_REG_END) {
-        if (regarray[i].reg != OV5647_REG_DELAY) {
-            ret = ov5647_write(sccb_handle, regarray[i].reg, regarray[i].val);
+    while ((ret == ESP_OK) && regarray[i].reg != IMX500_REG_END) {
+        if (regarray[i].reg != IMX500_REG_DELAY) {
+            ret = imx500_write(sccb_handle, regarray[i].reg, regarray[i].val);
         } else {
             delay_ms(regarray[i].val);
         }
@@ -201,27 +201,27 @@ static esp_err_t ov5647_write_array(esp_sccb_io_handle_t sccb_handle, const ov56
     return ret;
 }
 
-static esp_err_t ov5647_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t offset, uint8_t length, uint8_t value)
+static esp_err_t imx500_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t offset, uint8_t length, uint8_t value)
 {
     esp_err_t ret = ESP_OK;
     uint8_t reg_data = 0;
 
-    ret = ov5647_read(sccb_handle, reg, &reg_data);
+    ret = imx500_read(sccb_handle, reg, &reg_data);
     if (ret != ESP_OK) {
         return ret;
     }
     uint8_t mask = ((1 << length) - 1) << offset;
     value = (reg_data & ~mask) | ((value << offset) & mask);
-    ret = ov5647_write(sccb_handle, reg, value);
+    ret = imx500_write(sccb_handle, reg, value);
     return ret;
 }
 
-static esp_err_t ov5647_set_test_pattern(esp_cam_sensor_device_t *dev, int enable)
+static esp_err_t imx500_set_test_pattern(esp_cam_sensor_device_t *dev, int enable)
 {
-    return ov5647_set_reg_bits(dev->sccb_handle, 0x503D, 7, 1, enable ? 0x01 : 0x00);
+    return imx500_set_reg_bits(dev->sccb_handle, 0x503D, 7, 1, enable ? 0x01 : 0x00);
 }
 
-static esp_err_t ov5647_hw_reset(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_hw_reset(esp_cam_sensor_device_t *dev)
 {
     if (dev->reset_pin >= 0) {
         gpio_set_level(dev->reset_pin, 0);
@@ -232,20 +232,20 @@ static esp_err_t ov5647_hw_reset(esp_cam_sensor_device_t *dev)
     return 0;
 }
 
-static esp_err_t ov5647_soft_reset(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_soft_reset(esp_cam_sensor_device_t *dev)
 {
-    esp_err_t ret = ov5647_set_reg_bits(dev->sccb_handle, 0x0103, 0, 1, 0x01);
+    esp_err_t ret = imx500_set_reg_bits(dev->sccb_handle, 0x0103, 0, 1, 0x01);
     delay_ms(5);
     return ret;
 }
 
-static esp_err_t ov5647_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sensor_id_t *id)
+static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sensor_id_t *id)
 {
     uint8_t pid_h, pid_l;
-    esp_err_t ret = ov5647_read(dev->sccb_handle, OV5647_REG_SENSOR_ID_H, &pid_h);
+    esp_err_t ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_H, &pid_h);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_h failed");
 
-    ret = ov5647_read(dev->sccb_handle, OV5647_REG_SENSOR_ID_L, &pid_l);
+    ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_L, &pid_l);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_l failed");
 
     uint16_t pid = (pid_h << 8) | pid_l;
@@ -255,33 +255,33 @@ static esp_err_t ov5647_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
     return ret;
 }
 
-static esp_err_t ov5647_set_stream(esp_cam_sensor_device_t *dev, int enable)
+static esp_err_t imx500_set_stream(esp_cam_sensor_device_t *dev, int enable)
 {
     esp_err_t ret;
-    uint8_t val = OV5647_MIPI_CTRL00_BUS_IDLE;
+    uint8_t val = IMX500_MIPI_CTRL00_BUS_IDLE;
     if (enable) {
 #if CSI2_NONCONTINUOUS_CLOCK
-        val |= OV5647_MIPI_CTRL00_CLOCK_LANE_GATE | OV5647_MIPI_CTRL00_LINE_SYNC_ENABLE;
+        val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_LINE_SYNC_ENABLE;
 #endif
     } else {
-        val |= OV5647_MIPI_CTRL00_CLOCK_LANE_GATE | OV5647_MIPI_CTRL00_CLOCK_LANE_DISABLE;
+        val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_CLOCK_LANE_DISABLE;
     }
 
-    ret = ov5647_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
+    ret = imx500_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-#if CONFIG_CAMERA_OV5647_ISP_AF_ENABLE
-    ret = ov5647_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
+#if CONFIG_CAMERA_IMX500_ISP_AF_ENABLE
+    ret = imx500_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-    ret = ov5647_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
+    ret = imx500_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-    ret = ov5647_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
+    ret = imx500_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 #endif
 
-    ret = ov5647_write(dev->sccb_handle, 0x0100, enable ? 0x01 : 0x00);
+    ret = imx500_write(dev->sccb_handle, 0x0100, enable ? 0x01 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
     dev->stream_status = enable;
@@ -290,17 +290,17 @@ static esp_err_t ov5647_set_stream(esp_cam_sensor_device_t *dev, int enable)
     return ret;
 }
 
-static esp_err_t ov5647_set_mirror(esp_cam_sensor_device_t *dev, int enable)
+static esp_err_t imx500_set_mirror(esp_cam_sensor_device_t *dev, int enable)
 {
-    return ov5647_set_reg_bits(dev->sccb_handle, 0x3821, 1, 1, enable ? 0x01 : 0x00);
+    return imx500_set_reg_bits(dev->sccb_handle, 0x3821, 1, 1, enable ? 0x01 : 0x00);
 }
 
-static esp_err_t ov5647_set_vflip(esp_cam_sensor_device_t *dev, int enable)
+static esp_err_t imx500_set_vflip(esp_cam_sensor_device_t *dev, int enable)
 {
-    return ov5647_set_reg_bits(dev->sccb_handle, 0x3820, 1, 1, enable ? 0x01 : 0x00);
+    return imx500_set_reg_bits(dev->sccb_handle, 0x3820, 1, 1, enable ? 0x01 : 0x00);
 }
 
-static esp_err_t ov5647_set_AE_target(esp_cam_sensor_device_t *dev, int target)
+static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target)
 {
     esp_err_t ret = ESP_OK;
     /* stable in high */
@@ -315,18 +315,18 @@ static esp_err_t ov5647_set_AE_target(esp_cam_sensor_device_t *dev, int target)
 
     fast_low = AE_low >> 1;
 
-    ret |= ov5647_write(dev->sccb_handle, 0x3a0f, AE_high);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a10, AE_low);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a1b, AE_high);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a1e, AE_low);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a11, fast_high);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a1f, fast_low);
+    ret |= imx500_write(dev->sccb_handle, 0x3a0f, AE_high);
+    ret |= imx500_write(dev->sccb_handle, 0x3a10, AE_low);
+    ret |= imx500_write(dev->sccb_handle, 0x3a1b, AE_high);
+    ret |= imx500_write(dev->sccb_handle, 0x3a1e, AE_low);
+    ret |= imx500_write(dev->sccb_handle, 0x3a11, fast_high);
+    ret |= imx500_write(dev->sccb_handle, 0x3a1f, fast_low);
 
     return ret;
 }
 
 
-static esp_err_t ov5647_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_sensor_param_desc_t *qdesc)
+static esp_err_t imx500_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_sensor_param_desc_t *qdesc)
 {
     esp_err_t ret = ESP_OK;
     switch (qdesc->id) {
@@ -343,7 +343,7 @@ static esp_err_t ov5647_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_se
         qdesc->number.minimum = 2;
         qdesc->number.maximum = 235;
         qdesc->number.step = 1;
-        qdesc->default_value = OV5647_AE_TARGET_DEFAULT;
+        qdesc->default_value = IMX500_AE_TARGET_DEFAULT;
         break;
     default: {
         ESP_LOGD(TAG, "id=%"PRIx32" is not supported", qdesc->id);
@@ -354,12 +354,12 @@ static esp_err_t ov5647_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_se
     return ret;
 }
 
-static esp_err_t ov5647_get_para_value(esp_cam_sensor_device_t *dev, uint32_t id, void *arg, size_t size)
+static esp_err_t imx500_get_para_value(esp_cam_sensor_device_t *dev, uint32_t id, void *arg, size_t size)
 {
     return ESP_ERR_NOT_SUPPORTED;
 }
 
-static esp_err_t ov5647_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id, const void *arg, size_t size)
+static esp_err_t imx500_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id, const void *arg, size_t size)
 {
     esp_err_t ret = ESP_OK;
 
@@ -367,19 +367,19 @@ static esp_err_t ov5647_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id
     case ESP_CAM_SENSOR_VFLIP: {
         int *value = (int *)arg;
 
-        ret = ov5647_set_vflip(dev, *value);
+        ret = imx500_set_vflip(dev, *value);
         break;
     }
     case ESP_CAM_SENSOR_HMIRROR: {
         int *value = (int *)arg;
 
-        ret = ov5647_set_mirror(dev, *value);
+        ret = imx500_set_mirror(dev, *value);
         break;
     }
     case ESP_CAM_SENSOR_EXPOSURE_VAL: {
         int *value = (int *)arg;
 
-        ret = ov5647_set_AE_target(dev, *value);
+        ret = imx500_set_AE_target(dev, *value);
         break;
     }
     default: {
@@ -392,17 +392,17 @@ static esp_err_t ov5647_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id
     return ret;
 }
 
-static esp_err_t ov5647_query_support_formats(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_array_t *formats)
+static esp_err_t imx500_query_support_formats(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_array_t *formats)
 {
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, formats);
 
-    formats->count = ARRAY_SIZE(ov5647_format_info);
-    formats->format_array = &ov5647_format_info[0];
+    formats->count = ARRAY_SIZE(imx500_format_info);
+    formats->format_array = &imx500_format_info[0];
     return ESP_OK;
 }
 
-static esp_err_t ov5647_query_support_capability(esp_cam_sensor_device_t *dev, esp_cam_sensor_capability_t *sensor_cap)
+static esp_err_t imx500_query_support_capability(esp_cam_sensor_device_t *dev, esp_cam_sensor_capability_t *sensor_cap)
 {
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, sensor_cap);
@@ -411,7 +411,7 @@ static esp_err_t ov5647_query_support_capability(esp_cam_sensor_device_t *dev, e
     return ESP_OK;
 }
 
-static int ov5647_get_sysclk(esp_cam_sensor_device_t *dev)
+static int imx500_get_sysclk(esp_cam_sensor_device_t *dev)
 {
     /* calculate sysclk */
     int xvclk = dev->cur_format->xclk / 10000;
@@ -424,68 +424,68 @@ static int ov5647_get_sysclk(esp_cam_sensor_device_t *dev)
     const int bit_div2x_map[] = {2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 5, 2, 2, 2, 2, 2};
     const int sclk_div_map[] = {1, 2, 4, 1};
 
-    ov5647_read(dev->sccb_handle, 0x3037, &temp1);
+    imx500_read(dev->sccb_handle, 0x3037, &temp1);
     temp2 = temp1 & 0x0f;
     pre_div02x = pre_div02x_map[temp2];
     temp2 = (temp1 >> 4) & 0x01;
     pll_rdiv = pll_rdiv_map[temp2];
-    ov5647_read(dev->sccb_handle, 0x3036, &temp1);
+    imx500_read(dev->sccb_handle, 0x3036, &temp1);
 
     div_cnt7b = temp1;
 
     VCO = xvclk * 2 / pre_div02x * div_cnt7b;
-    ov5647_read(dev->sccb_handle, 0x3035, &temp1);
+    imx500_read(dev->sccb_handle, 0x3035, &temp1);
     temp2 = temp1 >> 4;
     sdiv0 = sdiv0_map[temp2];
-    ov5647_read(dev->sccb_handle, 0x3034, &temp1);
+    imx500_read(dev->sccb_handle, 0x3034, &temp1);
     temp2 = temp1 & 0x0f;
     bit_div2x = bit_div2x_map[temp2];
-    ov5647_read(dev->sccb_handle, 0x3106, &temp1);
+    imx500_read(dev->sccb_handle, 0x3106, &temp1);
     temp2 = (temp1 >> 2) & 0x03;
     sclk_div = sclk_div_map[temp2];
     sysclk = VCO * 2 / sdiv0 / pll_rdiv / bit_div2x / sclk_div;
     return sysclk;
 }
 
-static int ov5647_get_hts(esp_cam_sensor_device_t *dev)
+static int imx500_get_hts(esp_cam_sensor_device_t *dev)
 {
     /* read HTS from register settings */
     int hts = 0;
     uint8_t temp1, temp2;
 
-    ov5647_read(dev->sccb_handle, 0x380c, &temp1);
-    ov5647_read(dev->sccb_handle, 0x380d, &temp2);
+    imx500_read(dev->sccb_handle, 0x380c, &temp1);
+    imx500_read(dev->sccb_handle, 0x380d, &temp2);
     hts = (temp1 << 8) + temp2;
 
     return hts;
 }
 
-static int ov5647_get_vts(esp_cam_sensor_device_t *dev)
+static int imx500_get_vts(esp_cam_sensor_device_t *dev)
 {
     /* read VTS from register settings */
     int vts = 0;
     uint8_t temp1, temp2;
 
     /* total vertical size[15:8] high byte */
-    ov5647_read(dev->sccb_handle, 0x380e, &temp1);
-    ov5647_read(dev->sccb_handle, 0x380f, &temp2);
+    imx500_read(dev->sccb_handle, 0x380e, &temp1);
+    imx500_read(dev->sccb_handle, 0x380f, &temp2);
 
     vts = (temp1 << 8) + temp2;
 
     return vts;
 }
 
-static int ov5647_get_light_freq(esp_cam_sensor_device_t *dev)
+static int imx500_get_light_freq(esp_cam_sensor_device_t *dev)
 {
     /* get banding filter value */
     uint8_t temp, temp1;
     int light_freq = 0;
 
-    ov5647_read(dev->sccb_handle, 0x3c01, &temp);
+    imx500_read(dev->sccb_handle, 0x3c01, &temp);
 
     if (temp & 0x80) {
         /* manual */
-        ov5647_read(dev->sccb_handle, 0x3c00, &temp1);
+        imx500_read(dev->sccb_handle, 0x3c00, &temp1);
         if (temp1 & 0x04) {
             /* 50Hz */
             light_freq = 50;
@@ -495,7 +495,7 @@ static int ov5647_get_light_freq(esp_cam_sensor_device_t *dev)
         }
     } else {
         /* auto */
-        ov5647_read(dev->sccb_handle, 0x3c0c, &temp1);
+        imx500_read(dev->sccb_handle, 0x3c0c, &temp1);
         if (temp1 & 0x01) {
             /* 50Hz */
             light_freq = 50;
@@ -506,40 +506,40 @@ static int ov5647_get_light_freq(esp_cam_sensor_device_t *dev)
     return light_freq;
 }
 
-static esp_err_t ov5647_set_bandingfilter(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_set_bandingfilter(esp_cam_sensor_device_t *dev)
 {
     esp_err_t ret;
     int prev_sysclk, prev_VTS, prev_HTS;
     int band_step60, max_band60, band_step50, max_band50;
 
     /* read preview PCLK */
-    prev_sysclk = ov5647_get_sysclk(dev);
+    prev_sysclk = imx500_get_sysclk(dev);
     /* read preview HTS */
-    prev_HTS = ov5647_get_hts(dev);
+    prev_HTS = imx500_get_hts(dev);
 
     /* read preview VTS */
-    prev_VTS = ov5647_get_vts(dev);
+    prev_VTS = imx500_get_vts(dev);
 
     /* calculate banding filter */
     /* 60Hz */
     band_step60 = prev_sysclk * 100 / prev_HTS * 100 / 120;
-    ret = ov5647_write(dev->sccb_handle, 0x3a0a, (uint8_t)(band_step60 >> 8));
-    ret |= ov5647_write(dev->sccb_handle, 0x3a0b, (uint8_t)(band_step60 & 0xff));
+    ret = imx500_write(dev->sccb_handle, 0x3a0a, (uint8_t)(band_step60 >> 8));
+    ret |= imx500_write(dev->sccb_handle, 0x3a0b, (uint8_t)(band_step60 & 0xff));
 
     max_band60 = (int)((prev_VTS - 4) / band_step60);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a0d, (uint8_t)max_band60);
+    ret |= imx500_write(dev->sccb_handle, 0x3a0d, (uint8_t)max_band60);
 
     /* 50Hz */
     band_step50 = prev_sysclk * 100 / prev_HTS;
-    ret |= ov5647_write(dev->sccb_handle, 0x3a08, (uint8_t)(band_step50 >> 8));
-    ret |= ov5647_write(dev->sccb_handle, 0x3a09, (uint8_t)(band_step50 & 0xff));
+    ret |= imx500_write(dev->sccb_handle, 0x3a08, (uint8_t)(band_step50 >> 8));
+    ret |= imx500_write(dev->sccb_handle, 0x3a09, (uint8_t)(band_step50 & 0xff));
 
     max_band50 = (int)((prev_VTS - 4) / band_step50);
-    ret |= ov5647_write(dev->sccb_handle, 0x3a0e, (uint8_t)max_band50);
+    ret |= imx500_write(dev->sccb_handle, 0x3a0e, (uint8_t)max_band50);
     return ret;
 }
 
-static esp_err_t ov5647_set_format(esp_cam_sensor_device_t *dev, const esp_cam_sensor_format_t *format)
+static esp_err_t imx500_set_format(esp_cam_sensor_device_t *dev, const esp_cam_sensor_format_t *format)
 {
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
 
@@ -548,33 +548,33 @@ static esp_err_t ov5647_set_format(esp_cam_sensor_device_t *dev, const esp_cam_s
     You can set the output format of the sensor without using query_format().*/
     if (format == NULL) {
         if (dev->sensor_port == ESP_CAM_SENSOR_MIPI_CSI) {
-            format = &ov5647_format_info[CONFIG_CAMERA_OV5647_MIPI_IF_FORMAT_INDEX_DAFAULT];
+            format = &imx500_format_info[CONFIG_CAMERA_IMX500_MIPI_IF_FORMAT_INDEX_DAFAULT];
         } else {
             ESP_LOGE(TAG, "Not support DVP port");
         }
     }
     // reset
-    ret = ov5647_write_array(dev->sccb_handle, ov5647_mipi_reset_regs);
+    ret = imx500_write_array(dev->sccb_handle, imx500_mipi_reset_regs);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write reset regs failed");
     // write format related regs
-    ret = ov5647_write_array(dev->sccb_handle, (const ov5647_reginfo_t *)format->regs);
+    ret = imx500_write_array(dev->sccb_handle, (const imx500_reginfo_t *)format->regs);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write fmt regs failed");
 
-    ret = ov5647_set_AE_target(dev, OV5647_AE_TARGET_DEFAULT);
+    ret = imx500_set_AE_target(dev, IMX500_AE_TARGET_DEFAULT);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "set ae target failed");
-    ov5647_set_bandingfilter(dev);
+    imx500_set_bandingfilter(dev);
 
     // stop stream default
-    ret = ov5647_set_stream(dev, 0);
+    ret = imx500_set_stream(dev, 0);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write stream regs failed");
-    ESP_LOGD(TAG, "light freq=0x%x", ov5647_get_light_freq(dev));
+    ESP_LOGD(TAG, "light freq=0x%x", imx500_get_light_freq(dev));
 
     dev->cur_format = format;
 
     return ret;
 }
 
-static esp_err_t ov5647_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_t *format)
+static esp_err_t imx500_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_t *format)
 {
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, format);
@@ -588,55 +588,55 @@ static esp_err_t ov5647_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_
     return ret;
 }
 
-static esp_err_t ov5647_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, void *arg)
+static esp_err_t imx500_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, void *arg)
 {
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
 
     esp_err_t ret = ESP_FAIL;
     uint8_t regval;
     esp_cam_sensor_reg_val_t *sensor_reg;
-    OV5647_IO_MUX_LOCK(mux);
+    IMX500_IO_MUX_LOCK(mux);
     switch (cmd) {
     case ESP_CAM_SENSOR_IOC_HW_RESET:
-        ret = ov5647_hw_reset(dev);
+        ret = imx500_hw_reset(dev);
         break;
     case ESP_CAM_SENSOR_IOC_SW_RESET:
-        ret = ov5647_soft_reset(dev);
+        ret = imx500_soft_reset(dev);
         break;
     case ESP_CAM_SENSOR_IOC_S_REG:
         sensor_reg = (esp_cam_sensor_reg_val_t *)arg;
-        ret = ov5647_write(dev->sccb_handle, sensor_reg->regaddr, sensor_reg->value);
+        ret = imx500_write(dev->sccb_handle, sensor_reg->regaddr, sensor_reg->value);
         break;
     case ESP_CAM_SENSOR_IOC_S_STREAM:
-        ret = ov5647_set_stream(dev, *(int *)arg);
+        ret = imx500_set_stream(dev, *(int *)arg);
         break;
     case ESP_CAM_SENSOR_IOC_S_TEST_PATTERN:
-        ret = ov5647_set_test_pattern(dev, *(int *)arg);
+        ret = imx500_set_test_pattern(dev, *(int *)arg);
         break;
     case ESP_CAM_SENSOR_IOC_G_REG:
         sensor_reg = (esp_cam_sensor_reg_val_t *)arg;
-        ret = ov5647_read(dev->sccb_handle, sensor_reg->regaddr, &regval);
+        ret = imx500_read(dev->sccb_handle, sensor_reg->regaddr, &regval);
         if (ret == ESP_OK) {
             sensor_reg->value = regval;
         }
         break;
     case ESP_CAM_SENSOR_IOC_G_CHIP_ID:
-        ret = ov5647_get_sensor_id(dev, arg);
+        ret = imx500_get_sensor_id(dev, arg);
         break;
     default:
         ret = ESP_ERR_INVALID_ARG;
         break;
     }
-    OV5647_IO_MUX_UNLOCK(mux);
+    IMX500_IO_MUX_UNLOCK(mux);
     return ret;
 }
 
-static esp_err_t ov5647_power_on(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev)
 {
     esp_err_t ret = ESP_OK;
 
     if (dev->xclk_pin >= 0) {
-        OV5647_ENABLE_OUT_CLOCK(dev->xclk_pin, dev->xclk_freq_hz);
+        IMX500_ENABLE_OUT_CLOCK(dev->xclk_pin, dev->xclk_freq_hz);
     }
 
     if (dev->pwdn_pin >= 0) {
@@ -669,12 +669,12 @@ static esp_err_t ov5647_power_on(esp_cam_sensor_device_t *dev)
     return ret;
 }
 
-static esp_err_t ov5647_power_off(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_power_off(esp_cam_sensor_device_t *dev)
 {
     esp_err_t ret = ESP_OK;
 
     if (dev->xclk_pin >= 0) {
-        OV5647_DISABLE_OUT_CLOCK(dev->xclk_pin);
+        IMX500_DISABLE_OUT_CLOCK(dev->xclk_pin);
     }
 
     if (dev->pwdn_pin >= 0) {
@@ -694,9 +694,9 @@ static esp_err_t ov5647_power_off(esp_cam_sensor_device_t *dev)
     return ret;
 }
 
-static esp_err_t ov5647_delete(esp_cam_sensor_device_t *dev)
+static esp_err_t imx500_delete(esp_cam_sensor_device_t *dev)
 {
-    ESP_LOGD(TAG, "del ov5647 (%p)", dev);
+    ESP_LOGD(TAG, "del imx500 (%p)", dev);
     if (dev) {
         free(dev);
         dev = NULL;
@@ -705,20 +705,20 @@ static esp_err_t ov5647_delete(esp_cam_sensor_device_t *dev)
     return ESP_OK;
 }
 
-static const esp_cam_sensor_ops_t ov5647_ops = {
-    .query_para_desc = ov5647_query_para_desc,
-    .get_para_value = ov5647_get_para_value,
-    .set_para_value = ov5647_set_para_value,
-    .query_support_formats = ov5647_query_support_formats,
-    .query_support_capability = ov5647_query_support_capability,
-    .set_format = ov5647_set_format,
-    .get_format = ov5647_get_format,
-    .priv_ioctl = ov5647_priv_ioctl,
-    .del = ov5647_delete
+static const esp_cam_sensor_ops_t imx500_ops = {
+    .query_para_desc = imx500_query_para_desc,
+    .get_para_value = imx500_get_para_value,
+    .set_para_value = imx500_set_para_value,
+    .query_support_formats = imx500_query_support_formats,
+    .query_support_capability = imx500_query_support_capability,
+    .set_format = imx500_set_format,
+    .get_format = imx500_get_format,
+    .priv_ioctl = imx500_priv_ioctl,
+    .del = imx500_delete
 };
 
 // We need manage these devices, and maybe need to add it into the private member of esp_device
-esp_cam_sensor_device_t *ov5647_detect(esp_cam_sensor_config_t *config)
+esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config)
 {
     esp_cam_sensor_device_t *dev = NULL;
 
@@ -732,30 +732,30 @@ esp_cam_sensor_device_t *ov5647_detect(esp_cam_sensor_config_t *config)
         return NULL;
     }
 
-    dev->name = (char *)OV5647_SENSOR_NAME;
+    dev->name = (char *)IMX500_SENSOR_NAME;
     dev->sccb_handle = config->sccb_handle;
     dev->xclk_pin = config->xclk_pin;
     dev->reset_pin = config->reset_pin;
     dev->pwdn_pin = config->pwdn_pin;
     dev->sensor_port = config->sensor_port;
-    dev->ops = &ov5647_ops;
+    dev->ops = &imx500_ops;
     if (config->sensor_port == ESP_CAM_SENSOR_MIPI_CSI) {
-        dev->cur_format = &ov5647_format_info[CONFIG_CAMERA_OV5647_MIPI_IF_FORMAT_INDEX_DAFAULT];
+        dev->cur_format = &imx500_format_info[CONFIG_CAMERA_IMX500_MIPI_IF_FORMAT_INDEX_DAFAULT];
     } else {
         ESP_LOGE(TAG, "Not support DVP port");
     }
 
     // Configure sensor power, clock, and SCCB port
-    if (ov5647_power_on(dev) != ESP_OK) {
+    if (imx500_power_on(dev) != ESP_OK) {
         ESP_LOGE(TAG, "Camera power on failed");
         goto err_free_handler;
     }
 
-    if (ov5647_get_sensor_id(dev, &dev->id) != ESP_OK) {
+    if (imx500_get_sensor_id(dev, &dev->id) != ESP_OK) {
         ESP_LOGE(TAG, "Get sensor ID failed");
         goto err_free_handler;
-    } else if (dev->id.pid != OV5647_PID) {
-        ESP_LOGE(TAG, "Camera sensor is not OV5647, PID=0x%x", dev->id.pid);
+    } else if (dev->id.pid != IMX500_PID) {
+        ESP_LOGE(TAG, "Camera sensor is not IMX500, PID=0x%x", dev->id.pid);
         goto err_free_handler;
     }
     ESP_LOGI(TAG, "Detected Camera sensor PID=0x%x", dev->id.pid);
@@ -763,16 +763,16 @@ esp_cam_sensor_device_t *ov5647_detect(esp_cam_sensor_config_t *config)
     return dev;
 
 err_free_handler:
-    ov5647_power_off(dev);
+    imx500_power_off(dev);
     free(dev);
 
     return NULL;
 }
 
-#if CONFIG_CAMERA_OV5647_AUTO_DETECT_MIPI_INTERFACE_SENSOR
-ESP_CAM_SENSOR_DETECT_FN(ov5647_detect, ESP_CAM_SENSOR_MIPI_CSI, OV5647_SCCB_ADDR)
+#if CONFIG_CAMERA_IMX500_AUTO_DETECT_MIPI_INTERFACE_SENSOR
+ESP_CAM_SENSOR_DETECT_FN(imx500_detect, ESP_CAM_SENSOR_MIPI_CSI, IMX500_SCCB_ADDR)
 {
     ((esp_cam_sensor_config_t *)config)->sensor_port = ESP_CAM_SENSOR_MIPI_CSI;
-    return ov5647_detect(config);
+    return imx500_detect(config);
 }
 #endif
