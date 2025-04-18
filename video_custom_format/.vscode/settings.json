@@ -9,5 +9,10 @@
         "board/esp32p4-ftdi.cfg"
     ],
     "idf.portWin": "COM9",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "*.lua": "lua",
+        "*.cpp": "cpp",
+        "app_imx500_custom_settings.h": "c"
+    }
 }

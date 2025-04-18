@@ -18,7 +18,8 @@
 #include <sys/param.h>
 
 // #include "app_sc2336_custom_settings.h"
-#include "app_ov5647_custom_settings.h"
+// #include "app_ov5647_custom_settings.h"
+#include "app_imx500_custom_settings.h"
 
 #define MEMORY_TYPE V4L2_MEMORY_MMAP
 #define BUFFER_COUNT 2
@@ -84,6 +85,7 @@ static esp_err_t camera_capture_stream(void) {
     ESP_LOGI(TAG, "card:    %s", capability.card);
     ESP_LOGI(TAG, "bus:     %s", capability.bus_info);
     ESP_LOGI(TAG, "capabilities:");
+    
     if (capability.capabilities & V4L2_CAP_VIDEO_CAPTURE) {
         ESP_LOGI(TAG, "\tVIDEO_CAPTURE");
     }
