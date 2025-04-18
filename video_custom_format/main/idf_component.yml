@@ -2,3 +2,4 @@ dependencies:
   idf: ">=5.3"
   esp_video:
     version: "0.*"
+    path: "../components/esp_video"
