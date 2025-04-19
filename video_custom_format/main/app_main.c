@@ -62,20 +62,23 @@ static esp_err_t camera_capture_stream(void) {
     struct v4l2_capability capability;
 
     const int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 打开视频设备
     fd = open("/dev/video0", O_RDONLY);
     if (fd < 0) {
-        ESP_LOGE(TAG, "failed to open device");
+        ESP_LOGI(TAG, "failed to open device");
         return ESP_FAIL;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 查询设备能力
     if (ioctl(fd, VIDIOC_QUERYCAP, &capability)) {
-        ESP_LOGE(TAG, "failed to get capability");
+        ESP_LOGI(TAG, "failed to get capability");
         ret = ESP_FAIL;
         goto exit_0;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 打印设备能力信息
     ESP_LOGI(TAG, "version: %d.%d.%d", (uint16_t)(capability.version >> 16),
@@ -85,7 +88,7 @@ static esp_err_t camera_capture_stream(void) {
     ESP_LOGI(TAG, "card:    %s", capability.card);
     ESP_LOGI(TAG, "bus:     %s", capability.bus_info);
     ESP_LOGI(TAG, "capabilities:");
-    
+
     if (capability.capabilities & V4L2_CAP_VIDEO_CAPTURE) {
         ESP_LOGI(TAG, "\tVIDEO_CAPTURE");
     }
@@ -120,9 +123,13 @@ static esp_err_t camera_capture_stream(void) {
         }
     }
 
+    printf("-----------------custom_format_info-----------------\n");
+
     // 设置自定义寄存器配置
     if (ioctl(fd, VIDIOC_S_SENSOR_FMT, &custom_format_info) != 0) {
         ret = ESP_FAIL;
+        printf("%s(%d)\n", __func__, __LINE__);
+
         goto exit_0;
     }
 
@@ -130,10 +137,15 @@ static esp_err_t camera_capture_stream(void) {
     memset(&init_format, 0, sizeof(struct v4l2_format));
     init_format.type = type;
     if (ioctl(fd, VIDIOC_G_FMT, &init_format) != 0) {
-        ESP_LOGE(TAG, "failed to get format");
+        ESP_LOGI(TAG, "failed to get format");
         ret = ESP_FAIL;
+        printf("%s(%d)\n", __func__, __LINE__);
+
         goto exit_0;
     }
+
+    ESP_LOGI(TAG, "\twidth:  %" PRIu32, init_format.fmt.pix.width);
+    ESP_LOGI(TAG, "\theight: %" PRIu32, init_format.fmt.pix.height);
 
     struct v4l2_fmtdesc fmtdesc = {
         .index = fmt_index++,
@@ -141,6 +153,9 @@ static esp_err_t camera_capture_stream(void) {
     };
 
     ESP_LOGI(TAG, "Capture %s format frames for %d seconds:", (char *)fmtdesc.description, CAPTURE_SECONDS);
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    printf("-----------------size-----------------\n");
 
     // 请求缓冲区
     memset(&req, 0, sizeof(req));
@@ -148,21 +163,24 @@ static esp_err_t camera_capture_stream(void) {
     req.type = type;
     req.memory = MEMORY_TYPE;
     if (ioctl(fd, VIDIOC_REQBUFS, &req) != 0) {
-        ESP_LOGE(TAG, "failed to require buffer");
+        ESP_LOGI(TAG, "failed to require buffer");
         ret = ESP_FAIL;
+        printf("%s(%d)\n", __func__, __LINE__);
+
         goto exit_0;
     }
 
     // 映射缓冲区并将其加入队列
     for (int i = 0; i < BUFFER_COUNT; i++) {
         struct v4l2_buffer buf;
+        printf("%s(%d)\n", __func__, __LINE__);
 
         memset(&buf, 0, sizeof(buf));
         buf.type = type;
         buf.memory = MEMORY_TYPE;
         buf.index = i;
         if (ioctl(fd, VIDIOC_QUERYBUF, &buf) != 0) {
-            ESP_LOGE(TAG, "failed to query buffer");
+            ESP_LOGI(TAG, "failed to query buffer");
             ret = ESP_FAIL;
             goto exit_0;
         }
@@ -170,13 +188,14 @@ static esp_err_t camera_capture_stream(void) {
         buffer[i] = (uint8_t *)mmap(NULL, buf.length, PROT_READ | PROT_WRITE,
                                     MAP_SHARED, fd, buf.m.offset);
         if (!buffer[i]) {
-            ESP_LOGE(TAG, "failed to map buffer");
+            ESP_LOGI(TAG, "failed to map buffer");
             ret = ESP_FAIL;
+
             goto exit_0;
         }
 
         if (ioctl(fd, VIDIOC_QBUF, &buf) != 0) {
-            ESP_LOGE(TAG, "failed to queue video frame");
+            ESP_LOGI(TAG, "failed to queue video frame");
             ret = ESP_FAIL;
             goto exit_0;
         }
@@ -184,42 +203,58 @@ static esp_err_t camera_capture_stream(void) {
 
     // 开始视频流
     if (ioctl(fd, VIDIOC_STREAMON, &type) != 0) {
-        ESP_LOGE(TAG, "failed to start stream");
+        ESP_LOGI(TAG, "failed to start stream");
         ret = ESP_FAIL;
         goto exit_0;
     }
+
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 捕获视频帧
     frame_count = 0;
     frame_size = 0;
     int64_t start_time_us = esp_timer_get_time();
     while (esp_timer_get_time() - start_time_us < (CAPTURE_SECONDS * 1000 * 1000)) {
+
         memset(&buf, 0, sizeof(buf));
+
         buf.type = type;
         buf.memory = MEMORY_TYPE;
+        
+        printf("%s(%d)\n", __func__, __LINE__);
+
         if (ioctl(fd, VIDIOC_DQBUF, &buf) != 0) {
-            ESP_LOGE(TAG, "failed to receive video frame");
+            ESP_LOGI(TAG, "failed to receive video frame");
             ret = ESP_FAIL;
             goto exit_0;
-        }
+        } 
 
         frame_size += buf.bytesused;
+        
+        printf("frame_size: %" PRIu32 "\n", frame_size);
+
+        printf("%s(%d)\n", __func__, __LINE__);
 
         if (ioctl(fd, VIDIOC_QBUF, &buf) != 0) {
-            ESP_LOGE(TAG, "failed to queue video frame");
+            ESP_LOGI(TAG, "failed to queue video frame");
             ret = ESP_FAIL;
             goto exit_0;
         }
 
         frame_count++;
+        printf("%s(%d)\n", __func__, __LINE__);
+
     }
 
     // 停止视频流
     if (ioctl(fd, VIDIOC_STREAMOFF, &type) != 0) {
-        ESP_LOGE(TAG, "failed to stop stream");
+        ESP_LOGI(TAG, "failed to stop stream");
+        printf("%s(%d)\n", __func__, __LINE__);
+
         ret = ESP_FAIL;
         goto exit_0;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 打印捕获的帧信息
     ESP_LOGI(TAG, "\twidth:  %" PRIu32, init_format.fmt.pix.width);
@@ -230,6 +265,8 @@ static esp_err_t camera_capture_stream(void) {
     ret = ESP_OK;
 
 exit_0:
+printf("%s(%d)\n", __func__, __LINE__);
+
     close(fd);
     return ret;
 }
@@ -238,16 +275,18 @@ void app_main(void) {
     esp_err_t ret = ESP_OK;
 
     // 初始化摄像头
+    printf("-----------------esp_video_init-----------------\n");
     ret = esp_video_init(&cam_config);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Camera init failed with error 0x%x", ret);
+        ESP_LOGI(TAG, "Camera init failed with error 0x%x", ret);
         return;
     }
+    printf("-----------------camera_capture_stream-----------------\n");
 
     // 开始摄像头捕获流
     ret = camera_capture_stream();
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Camera capture stream failed with error 0x%x", ret);
+        ESP_LOGI(TAG, "Camera capture stream failed with error 0x%x", ret);
         return;
     }
 }

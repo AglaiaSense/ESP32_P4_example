@@ -1144,17 +1144,16 @@ uint8_t *esp_video_get_element_index_payload(struct esp_video *video, uint32_t t
 
     return element->buffer;
 }
-
 /**
- * @brief Receive buffer element from video device.
+ * @brief 从视频设备接收缓冲区元素。
  *
- * @param video Video object
- * @param type  Video stream type
- * @param ticks Wait OS tick
+ * @param video 视频对象
+ * @param type  视频流类型
+ * @param ticks 等待的OS tick数
  *
  * @return
- *      - Video buffer element object pointer on success
- *      - NULL if failed
+ *      - 成功时返回视频缓冲区元素对象指针
+ *      - 失败时返回NULL
  */
 struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video, uint32_t type, uint32_t ticks)
 {
@@ -1163,40 +1162,48 @@ struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video,
     struct esp_video_buffer_element *element;
     uint32_t val = type;
 
+    // 获取视频流
     stream = esp_video_get_stream(video, type);
     if (!stream) {
         return NULL;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
+    // 如果设备支持M2M视频处理
     if (video->device_caps & V4L2_CAP_VIDEO_M2M) {
         /**
-         * Software M2M device: this callback call can do real codec process.
-         * Hardware M2M device: this callback call can start hardware if necessary.
+         * 软件M2M设备：此回调调用可以执行实际的编解码过程。
+         * 硬件M2M设备：此回调调用可以在必要时启动硬件。
          */
-
         ret = video->ops->notify(video, ESP_VIDEO_M2M_TRIGGER, &val);
         if (ret != ESP_OK) {
             return NULL;
         }
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
+    // 等待信号量
     ret = xSemaphoreTake(stream->ready_sem, (TickType_t)ticks);
     if (ret != pdTRUE) {
         return NULL;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
 #if CONFIG_ESP_VIDEO_ENABLE_DATA_PREPROCESSING
+    // 数据预处理通知
     ret = video->ops->notify(video, ESP_VIDEO_DATA_PREPROCESSING, &val);
     if (ret != ESP_OK) {
         return NULL;
     }
 #endif
+printf("%s(%d)\n", __func__, __LINE__);
 
+    // 获取已完成的元素
     element = esp_video_get_done_element(video, type);
+    printf("%s(%d)\n", __func__, __LINE__);
 
     return element;
 }
-
 /**
  * @brief Put buffer elements into M2M buffer queue list.
  *

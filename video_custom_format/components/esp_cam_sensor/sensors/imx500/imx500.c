@@ -4,81 +4,71 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <string.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <string.h>
 
 #include "esp_cam_sensor.h"
 #include "esp_cam_sensor_detect.h"
-#include "imx500_settings.h"
 #include "imx500.h"
+#include "imx500_settings.h"
 
 #define IMX500_IO_MUX_LOCK(mux)
 #define IMX500_IO_MUX_UNLOCK(mux)
-#define IMX500_ENABLE_OUT_CLOCK(pin,clk)
+#define IMX500_ENABLE_OUT_CLOCK(pin, clk)
 #define IMX500_DISABLE_OUT_CLOCK(pin)
 
-#define IMX500_PID         0x0
+#define IMX500_PID 0x0
 #define IMX500_SENSOR_NAME "IMX500"
 #define IMX500_AE_TARGET_DEFAULT (0x50)
 
 #ifndef portTICK_RATE_MS
 #define portTICK_RATE_MS portTICK_PERIOD_MS
 #endif
-#define delay_ms(ms)  vTaskDelay((ms > portTICK_PERIOD_MS ? ms/ portTICK_PERIOD_MS : 1))
+#define delay_ms(ms) vTaskDelay((ms > portTICK_PERIOD_MS ? ms / portTICK_PERIOD_MS : 1))
 #define IMX500_SUPPORT_NUM CONFIG_CAMERA_IMX500_MAX_SUPPORT
 
 static const char *TAG = "imx500";
 
 static const esp_cam_sensor_isp_info_t imx500_isp_info[] = {
-    {
-        .isp_v1_info = {
-            .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-            .pclk = 81666700,
-            .vts = 1896,
-            .hts = 984,
-            .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-        }
-    },
-    {
-        .isp_v1_info = {
-            .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-            .pclk = 81666700,
-            .vts = 1896,
-            .hts = 984,
-            .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-        }
-    },
-    {
-        .isp_v1_info = {
-            .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-            .pclk = 81666700,
-            .vts = 1896,
-            .hts = 984,
-            .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-        }
-    },
-    {
-        .isp_v1_info = {
-            .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-            .pclk = 81666700,
-            .vts = 1104,
-            .hts = 2416,
-            .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-        }
-    },
-    {
-        .isp_v1_info = {
-            .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-            .pclk = 88333333,
-            .vts = 1796,
-            .hts = 1093,
-            .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-        }
-    },
+    {.isp_v1_info = {
+         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+         .pclk = 744000000,
+         .vts = 2028,
+         .hts = 1520,
+         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+     }},
+    {.isp_v1_info = {
+         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+         .pclk = 81666700,
+         .vts = 1896,
+         .hts = 984,
+         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+     }},
+    {.isp_v1_info = {
+         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+         .pclk = 81666700,
+         .vts = 1896,
+         .hts = 984,
+         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+     }},
+    {.isp_v1_info = {
+         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+         .pclk = 81666700,
+         .vts = 1104,
+         .hts = 2416,
+         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+     }},
+    {.isp_v1_info = {
+         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+         .pclk = 88333333,
+         .vts = 1796,
+         .hts = 1093,
+         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+     }},
 };
 
 static const esp_cam_sensor_format_t imx500_format_info[] = {
@@ -87,8 +77,8 @@ static const esp_cam_sensor_format_t imx500_format_info[] = {
         .format = ESP_CAM_SENSOR_PIXFORMAT_RAW8,
         .port = ESP_CAM_SENSOR_MIPI_CSI,
         .xclk = 24000000,
-        .width = 800,
-        .height = 1280,
+        .width = 2028,
+        .height = 1520,
         .regs = imx500_input_24M_MIPI_2lane_raw8_800x1280_50fps,
         .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x1280_50fps),
         .fps = 50,
@@ -174,35 +164,40 @@ static const esp_cam_sensor_format_t imx500_format_info[] = {
     },
 };
 
-static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf)
-{
+static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf) {
     return esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
 }
 
-static esp_err_t imx500_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data)
-{
+static esp_err_t imx500_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data) {
+    printf("reg=0x%04x, data=0x%02x\n", reg, data);
+
     return esp_sccb_transmit_reg_a16v8(sccb_handle, reg, data);
 }
 
-/* write a array of registers */
-static esp_err_t imx500_write_array(esp_sccb_io_handle_t sccb_handle, const imx500_reginfo_t *regarray)
-{
+static esp_err_t imx500_write_array(esp_sccb_io_handle_t sccb_handle, const imx500_reginfo_t *regarray) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
     int i = 0;
     esp_err_t ret = ESP_OK;
+    // 循环写入寄存器数组中的每个寄存器
     while ((ret == ESP_OK) && regarray[i].reg != IMX500_REG_END) {
         if (regarray[i].reg != IMX500_REG_DELAY) {
+            // 如果寄存器不是延迟寄存器，则写入寄存器值
             ret = imx500_write(sccb_handle, regarray[i].reg, regarray[i].val);
         } else {
+            // 如果寄存器是延迟寄存器，则延迟指定的毫秒数
             delay_ms(regarray[i].val);
         }
         i++;
     }
+    // 打印写入寄存器的数量
     ESP_LOGD(TAG, "count=%d", i);
     return ret;
 }
+static esp_err_t imx500_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t offset, uint8_t length, uint8_t value) {
+    printf("%s(%d)\n", __func__, __LINE__);
 
-static esp_err_t imx500_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t offset, uint8_t length, uint8_t value)
-{
     esp_err_t ret = ESP_OK;
     uint8_t reg_data = 0;
 
@@ -216,13 +211,16 @@ static esp_err_t imx500_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t 
     return ret;
 }
 
-static esp_err_t imx500_set_test_pattern(esp_cam_sensor_device_t *dev, int enable)
-{
-    return imx500_set_reg_bits(dev->sccb_handle, 0x503D, 7, 1, enable ? 0x01 : 0x00);
+static esp_err_t imx500_set_test_pattern(esp_cam_sensor_device_t *dev, int enable) {
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    // return imx500_set_reg_bits(dev->sccb_handle, 0x503D, 7, 1, enable ? 0x01 : 0x00);
+    return ESP_OK;
 }
 
-static esp_err_t imx500_hw_reset(esp_cam_sensor_device_t *dev)
-{
+static esp_err_t imx500_hw_reset(esp_cam_sensor_device_t *dev) {
+    printf("%s(%d)\n", __func__, __LINE__);
+
     if (dev->reset_pin >= 0) {
         gpio_set_level(dev->reset_pin, 0);
         delay_ms(10);
@@ -232,15 +230,19 @@ static esp_err_t imx500_hw_reset(esp_cam_sensor_device_t *dev)
     return 0;
 }
 
-static esp_err_t imx500_soft_reset(esp_cam_sensor_device_t *dev)
-{
+static esp_err_t imx500_soft_reset(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
+    printf("%s(%d)\n", __func__, __LINE__);
+
     esp_err_t ret = imx500_set_reg_bits(dev->sccb_handle, 0x0103, 0, 1, 0x01);
     delay_ms(5);
     return ret;
 }
 
-static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sensor_id_t *id)
-{
+static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sensor_id_t *id) {
+    printf("%s(%d)\n", __func__, __LINE__);
+    return ESP_OK;
+
     uint8_t pid_h, pid_l;
     esp_err_t ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_H, &pid_h);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_h failed");
@@ -255,59 +257,110 @@ static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
     return ret;
 }
 
-static esp_err_t imx500_set_stream(esp_cam_sensor_device_t *dev, int enable)
-{
+/**
+ * @brief 设置传感器的流状态。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param enable 启用或禁用流。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_stream(esp_cam_sensor_device_t *dev, int enable) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
     esp_err_t ret;
-    uint8_t val = IMX500_MIPI_CTRL00_BUS_IDLE;
-    if (enable) {
-#if CSI2_NONCONTINUOUS_CLOCK
-        val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_LINE_SYNC_ENABLE;
-#endif
-    } else {
-        val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_CLOCK_LANE_DISABLE;
-    }
+//     uint8_t val = IMX500_MIPI_CTRL00_BUS_IDLE;
+//     if (enable) {
+// #if CSI2_NONCONTINUOUS_CLOCK
+//         // 如果启用流且使用非连续时钟，则设置时钟门控和行同步使能
+//         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_LINE_SYNC_ENABLE;
+// #endif
+//     } else {
+//         // 如果禁用流，则设置时钟门控和时钟通道禁用
+//         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_CLOCK_LANE_DISABLE;
+//     }
 
-    ret = imx500_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
-    ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+//     // 写入寄存器0x4800，设置CSI行同步使能
+//     ret = imx500_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
+//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-#if CONFIG_CAMERA_IMX500_ISP_AF_ENABLE
-    ret = imx500_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
-    ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+// #if CONFIG_CAMERA_IMX500_ISP_AF_ENABLE
+//     // 如果启用ISP自动对焦，则写入相关寄存器
+//     ret = imx500_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
+//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-    ret = imx500_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
-    ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+//     ret = imx500_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
+//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-    ret = imx500_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
-    ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
-#endif
+//     ret = imx500_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
+//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+// #endif
 
+    // 写入寄存器0x0100，启用或禁用流
     ret = imx500_write(dev->sccb_handle, 0x0100, enable ? 0x01 : 0x00);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
+    // 更新流状态
     dev->stream_status = enable;
 
-    ESP_LOGD(TAG, "Stream=%d", enable);
+    // 打印流状态
+    ESP_LOGI(TAG, "Stream=%d", enable);
     return ret;
 }
 
-static esp_err_t imx500_set_mirror(esp_cam_sensor_device_t *dev, int enable)
-{
+/**
+ * @brief 设置传感器的水平镜像。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param enable 启用或禁用水平镜像。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_mirror(esp_cam_sensor_device_t *dev, int enable) {
+    return ESP_OK;
+
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    // 设置寄存器位以启用或禁用水平镜像
     return imx500_set_reg_bits(dev->sccb_handle, 0x3821, 1, 1, enable ? 0x01 : 0x00);
 }
+/**
+ * @brief 设置传感器的垂直翻转。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param enable 启用或禁用垂直翻转。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_vflip(esp_cam_sensor_device_t *dev, int enable) {
+    return ESP_OK;
 
-static esp_err_t imx500_set_vflip(esp_cam_sensor_device_t *dev, int enable)
-{
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    // 设置寄存器位以启用或禁用垂直翻转
     return imx500_set_reg_bits(dev->sccb_handle, 0x3820, 1, 1, enable ? 0x01 : 0x00);
 }
 
-static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target)
-{
+/**
+ * @brief 设置传感器的自动曝光（AE）目标值。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param target 要设置的AE目标值。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target) {
+    printf("%s(%d)\n", __func__, __LINE__);
+    return ESP_OK;
+
+
     esp_err_t ret = ESP_OK;
-    /* stable in high */
+    /* 稳定在高位 */
     int fast_high, fast_low;
+    // 计算高低AE值
     int AE_low = target * 23 / 25;  /* 0.92 */
     int AE_high = target * 27 / 25; /* 1.08 */
 
+    // 计算快速高低AE值
     fast_high = AE_high << 1;
     if (fast_high > 255) {
         fast_high = 255;
@@ -315,6 +368,7 @@ static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target)
 
     fast_low = AE_low >> 1;
 
+    // 写入AE高低值到寄存器
     ret |= imx500_write(dev->sccb_handle, 0x3a0f, AE_high);
     ret |= imx500_write(dev->sccb_handle, 0x3a10, AE_low);
     ret |= imx500_write(dev->sccb_handle, 0x3a1b, AE_high);
@@ -325,9 +379,8 @@ static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target)
     return ret;
 }
 
-
-static esp_err_t imx500_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_sensor_param_desc_t *qdesc)
-{
+static esp_err_t imx500_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_sensor_param_desc_t *qdesc) {
+    printf("%s(%d)\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
     switch (qdesc->id) {
     case ESP_CAM_SENSOR_VFLIP:
@@ -346,7 +399,7 @@ static esp_err_t imx500_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_se
         qdesc->default_value = IMX500_AE_TARGET_DEFAULT;
         break;
     default: {
-        ESP_LOGD(TAG, "id=%"PRIx32" is not supported", qdesc->id);
+        ESP_LOGD(TAG, "id=%" PRIx32 " is not supported", qdesc->id);
         ret = ESP_ERR_INVALID_ARG;
         break;
     }
@@ -354,35 +407,55 @@ static esp_err_t imx500_query_para_desc(esp_cam_sensor_device_t *dev, esp_cam_se
     return ret;
 }
 
-static esp_err_t imx500_get_para_value(esp_cam_sensor_device_t *dev, uint32_t id, void *arg, size_t size)
-{
+/**
+ * @brief 获取传感器参数值。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param id 参数ID。
+ * @param arg 存储参数值的指针。
+ * @param size 参数值的大小。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_get_para_value(esp_cam_sensor_device_t *dev, uint32_t id, void *arg, size_t size) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
     return ESP_ERR_NOT_SUPPORTED;
 }
-
-static esp_err_t imx500_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id, const void *arg, size_t size)
-{
+/**
+ * @brief 设置传感器参数值。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param id 参数ID。
+ * @param arg 指向参数值的指针。
+ * @param size 参数值的大小。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id, const void *arg, size_t size) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
 
     switch (id) {
     case ESP_CAM_SENSOR_VFLIP: {
+        // 获取参数值并设置垂直翻转
         int *value = (int *)arg;
-
         ret = imx500_set_vflip(dev, *value);
         break;
     }
     case ESP_CAM_SENSOR_HMIRROR: {
+        // 获取参数值并设置水平镜像
         int *value = (int *)arg;
-
         ret = imx500_set_mirror(dev, *value);
         break;
     }
     case ESP_CAM_SENSOR_EXPOSURE_VAL: {
+        // 获取参数值并设置曝光值
         int *value = (int *)arg;
-
         ret = imx500_set_AE_target(dev, *value);
         break;
     }
     default: {
+        // 不支持的参数ID
         ESP_LOGE(TAG, "set id=%" PRIx32 " is not supported", id);
         ret = ESP_ERR_INVALID_ARG;
         break;
@@ -391,9 +464,8 @@ static esp_err_t imx500_set_para_value(esp_cam_sensor_device_t *dev, uint32_t id
 
     return ret;
 }
-
-static esp_err_t imx500_query_support_formats(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_array_t *formats)
-{
+static esp_err_t imx500_query_support_formats(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_array_t *formats) {
+    printf("%s(%d)\n", __func__, __LINE__);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, formats);
 
@@ -402,28 +474,42 @@ static esp_err_t imx500_query_support_formats(esp_cam_sensor_device_t *dev, esp_
     return ESP_OK;
 }
 
-static esp_err_t imx500_query_support_capability(esp_cam_sensor_device_t *dev, esp_cam_sensor_capability_t *sensor_cap)
-{
+static esp_err_t imx500_query_support_capability(esp_cam_sensor_device_t *dev, esp_cam_sensor_capability_t *sensor_cap) {
+    printf("%s(%d)\n", __func__, __LINE__);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, sensor_cap);
 
     sensor_cap->fmt_raw = 1;
     return ESP_OK;
 }
+/**
+ * @brief 获取系统时钟频率。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @return int 系统时钟频率。
+ */
+static int imx500_get_sysclk(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
 
-static int imx500_get_sysclk(esp_cam_sensor_device_t *dev)
-{
-    /* calculate sysclk */
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+    /* 计算系统时钟 */
     int xvclk = dev->cur_format->xclk / 10000;
     int sysclk = 0;
     uint8_t temp1, temp2;
     int pre_div02x, div_cnt7b, sdiv0, pll_rdiv, bit_div2x, sclk_div, VCO;
+    // 预分频器映射表
     const int pre_div02x_map[] = {2, 2, 4, 6, 8, 3, 12, 5, 16, 2, 2, 2, 2, 2, 2, 2};
+    // sdiv0映射表
     const int sdiv0_map[] = {16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    // pll_rdiv映射表
     const int pll_rdiv_map[] = {1, 2};
+    // bit_div2x映射表
     const int bit_div2x_map[] = {2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 5, 2, 2, 2, 2, 2};
+    // sclk_div映射表
     const int sclk_div_map[] = {1, 2, 4, 1};
 
+    // 读取寄存器值并计算预分频器值
     imx500_read(dev->sccb_handle, 0x3037, &temp1);
     temp2 = temp1 & 0x0f;
     pre_div02x = pre_div02x_map[temp2];
@@ -431,8 +517,10 @@ static int imx500_get_sysclk(esp_cam_sensor_device_t *dev)
     pll_rdiv = pll_rdiv_map[temp2];
     imx500_read(dev->sccb_handle, 0x3036, &temp1);
 
+    // 读取寄存器值并计算分频计数器值
     div_cnt7b = temp1;
 
+    // 计算VCO频率
     VCO = xvclk * 2 / pre_div02x * div_cnt7b;
     imx500_read(dev->sccb_handle, 0x3035, &temp1);
     temp2 = temp1 >> 4;
@@ -443,40 +531,63 @@ static int imx500_get_sysclk(esp_cam_sensor_device_t *dev)
     imx500_read(dev->sccb_handle, 0x3106, &temp1);
     temp2 = (temp1 >> 2) & 0x03;
     sclk_div = sclk_div_map[temp2];
+    // 计算系统时钟频率
     sysclk = VCO * 2 / sdiv0 / pll_rdiv / bit_div2x / sclk_div;
     return sysclk;
 }
+/**
+ * @brief 获取水平总尺寸（HTS）。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @return int 水平总尺寸（HTS）。
+ */
+static int imx500_get_hts(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
 
-static int imx500_get_hts(esp_cam_sensor_device_t *dev)
-{
-    /* read HTS from register settings */
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+    /* 从寄存器设置中读取HTS */
     int hts = 0;
     uint8_t temp1, temp2;
 
+    // 读取寄存器0x380c和0x380d的值
     imx500_read(dev->sccb_handle, 0x380c, &temp1);
     imx500_read(dev->sccb_handle, 0x380d, &temp2);
+    // 计算HTS值
     hts = (temp1 << 8) + temp2;
 
     return hts;
 }
 
-static int imx500_get_vts(esp_cam_sensor_device_t *dev)
-{
-    /* read VTS from register settings */
+/**
+ * @brief 获取垂直总尺寸（VTS）。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @return int 垂直总尺寸（VTS）。
+ */
+static int imx500_get_vts(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
+
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+    /* 从寄存器设置中读取VTS */
     int vts = 0;
     uint8_t temp1, temp2;
 
-    /* total vertical size[15:8] high byte */
+    /* 垂直总尺寸[15:8]高字节 */
     imx500_read(dev->sccb_handle, 0x380e, &temp1);
     imx500_read(dev->sccb_handle, 0x380f, &temp2);
 
+    // 计算VTS值
     vts = (temp1 << 8) + temp2;
 
     return vts;
 }
 
-static int imx500_get_light_freq(esp_cam_sensor_device_t *dev)
-{
+static int imx500_get_light_freq(esp_cam_sensor_device_t *dev) {
+    return 60;
+    
+    printf("%s(%d)\n", __func__, __LINE__);
     /* get banding filter value */
     uint8_t temp, temp1;
     int light_freq = 0;
@@ -505,23 +616,31 @@ static int imx500_get_light_freq(esp_cam_sensor_device_t *dev)
     }
     return light_freq;
 }
+/**
+ * @brief 设置频闪滤波器。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_set_bandingfilter(esp_cam_sensor_device_t *dev) {
+    printf("%s(%d)\n", __func__, __LINE__);
+    return ESP_OK;
 
-static esp_err_t imx500_set_bandingfilter(esp_cam_sensor_device_t *dev)
-{
+    // 打印函数名和行号
     esp_err_t ret;
     int prev_sysclk, prev_VTS, prev_HTS;
     int band_step60, max_band60, band_step50, max_band50;
 
-    /* read preview PCLK */
+    // 读取预览时的系统时钟
     prev_sysclk = imx500_get_sysclk(dev);
-    /* read preview HTS */
+    // 读取预览时的水平总尺寸
     prev_HTS = imx500_get_hts(dev);
 
-    /* read preview VTS */
+    // 读取预览时的垂直总尺寸
     prev_VTS = imx500_get_vts(dev);
 
-    /* calculate banding filter */
-    /* 60Hz */
+    // 计算频闪滤波器
+    // 60Hz
     band_step60 = prev_sysclk * 100 / prev_HTS * 100 / 120;
     ret = imx500_write(dev->sccb_handle, 0x3a0a, (uint8_t)(band_step60 >> 8));
     ret |= imx500_write(dev->sccb_handle, 0x3a0b, (uint8_t)(band_step60 & 0xff));
@@ -529,7 +648,7 @@ static esp_err_t imx500_set_bandingfilter(esp_cam_sensor_device_t *dev)
     max_band60 = (int)((prev_VTS - 4) / band_step60);
     ret |= imx500_write(dev->sccb_handle, 0x3a0d, (uint8_t)max_band60);
 
-    /* 50Hz */
+    // 50Hz
     band_step50 = prev_sysclk * 100 / prev_HTS;
     ret |= imx500_write(dev->sccb_handle, 0x3a08, (uint8_t)(band_step50 >> 8));
     ret |= imx500_write(dev->sccb_handle, 0x3a09, (uint8_t)(band_step50 & 0xff));
@@ -539,48 +658,70 @@ static esp_err_t imx500_set_bandingfilter(esp_cam_sensor_device_t *dev)
     return ret;
 }
 
-static esp_err_t imx500_set_format(esp_cam_sensor_device_t *dev, const esp_cam_sensor_format_t *format)
-{
+static esp_err_t imx500_set_format(esp_cam_sensor_device_t *dev, const esp_cam_sensor_format_t *format) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    // 检查指针是否为空
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
 
     esp_err_t ret = ESP_OK;
-    /* Depending on the interface type, an available configuration is automatically loaded.
-    You can set the output format of the sensor without using query_format().*/
+    /* 根据接口类型，自动加载可用配置。
+    您可以在不使用query_format()的情况下设置传感器的输出格式。*/
     if (format == NULL) {
         if (dev->sensor_port == ESP_CAM_SENSOR_MIPI_CSI) {
+            // 如果格式为空且接口类型为MIPI CSI，则使用默认格式
             format = &imx500_format_info[CONFIG_CAMERA_IMX500_MIPI_IF_FORMAT_INDEX_DAFAULT];
         } else {
+            // 如果接口类型不支持，打印错误信息
             ESP_LOGE(TAG, "Not support DVP port");
         }
     }
-    // reset
+
+    printf("format 1 ：%s\n", format->name);
+    // 重置传感器
     ret = imx500_write_array(dev->sccb_handle, imx500_mipi_reset_regs);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write reset regs failed");
-    // write format related regs
+    // 写入格式相关寄存器
     ret = imx500_write_array(dev->sccb_handle, (const imx500_reginfo_t *)format->regs);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write fmt regs failed");
 
+    printf("format 2 :%s\n", format->name);
+    // 设置自动曝光目标
     ret = imx500_set_AE_target(dev, IMX500_AE_TARGET_DEFAULT);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "set ae target failed");
+    // 设置频闪滤波器
     imx500_set_bandingfilter(dev);
 
-    // stop stream default
+    // 默认停止流
     ret = imx500_set_stream(dev, 0);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write stream regs failed");
+    // 打印光频
     ESP_LOGD(TAG, "light freq=0x%x", imx500_get_light_freq(dev));
 
+    // 更新当前格式
     dev->cur_format = format;
 
     return ret;
 }
 
-static esp_err_t imx500_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_t *format)
-{
+/**
+ * @brief 获取传感器的当前格式。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param format 指向存储当前格式的结构体的指针。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_format_t *format) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+    // 检查指针是否为空
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, format);
 
     esp_err_t ret = ESP_FAIL;
 
+    // 如果当前格式不为空，则复制当前格式到format指针指向的结构体
     if (dev->cur_format != NULL) {
         memcpy(format, dev->cur_format, sizeof(esp_cam_sensor_format_t));
         ret = ESP_OK;
@@ -588,32 +729,52 @@ static esp_err_t imx500_get_format(esp_cam_sensor_device_t *dev, esp_cam_sensor_
     return ret;
 }
 
-static esp_err_t imx500_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, void *arg)
-{
+/**
+ * @brief 私有IO控制函数，用于处理各种传感器命令。
+ *
+ * @param dev 指向摄像头传感器设备的指针。
+ * @param cmd 要执行的命令。
+ * @param arg 命令参数。
+ * @return esp_err_t 成功时返回ESP_OK，否则返回错误代码。
+ */
+static esp_err_t imx500_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, void *arg) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+    printf("cmd: %lu, arg: %p\n", cmd, arg); // 打印cmd和arg
+
+    // 检查指针是否为空
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
+   
 
     esp_err_t ret = ESP_FAIL;
     uint8_t regval;
     esp_cam_sensor_reg_val_t *sensor_reg;
+    // 锁定IO多路复用
     IMX500_IO_MUX_LOCK(mux);
     switch (cmd) {
     case ESP_CAM_SENSOR_IOC_HW_RESET:
+        // 硬件复位
         ret = imx500_hw_reset(dev);
         break;
     case ESP_CAM_SENSOR_IOC_SW_RESET:
+        // 软件复位
         ret = imx500_soft_reset(dev);
         break;
     case ESP_CAM_SENSOR_IOC_S_REG:
+        // 设置寄存器值
         sensor_reg = (esp_cam_sensor_reg_val_t *)arg;
         ret = imx500_write(dev->sccb_handle, sensor_reg->regaddr, sensor_reg->value);
         break;
     case ESP_CAM_SENSOR_IOC_S_STREAM:
+        // 设置流状态
         ret = imx500_set_stream(dev, *(int *)arg);
         break;
     case ESP_CAM_SENSOR_IOC_S_TEST_PATTERN:
+        // 设置测试模式
         ret = imx500_set_test_pattern(dev, *(int *)arg);
         break;
     case ESP_CAM_SENSOR_IOC_G_REG:
+        // 获取寄存器值
         sensor_reg = (esp_cam_sensor_reg_val_t *)arg;
         ret = imx500_read(dev->sccb_handle, sensor_reg->regaddr, &regval);
         if (ret == ESP_OK) {
@@ -621,18 +782,23 @@ static esp_err_t imx500_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, v
         }
         break;
     case ESP_CAM_SENSOR_IOC_G_CHIP_ID:
+        // 获取芯片ID
         ret = imx500_get_sensor_id(dev, arg);
         break;
     default:
+        // 无效的命令
         ret = ESP_ERR_INVALID_ARG;
         break;
     }
+    // 解锁IO多路复用
     IMX500_IO_MUX_UNLOCK(mux);
     return ret;
 }
 
-static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev)
-{
+static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
+
+    printf("%s(%d)\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
 
     if (dev->xclk_pin >= 0) {
@@ -640,7 +806,7 @@ static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev)
     }
 
     if (dev->pwdn_pin >= 0) {
-        gpio_config_t conf = { 0 };
+        gpio_config_t conf = {0};
         conf.pin_bit_mask = 1LL << dev->pwdn_pin;
         conf.mode = GPIO_MODE_OUTPUT;
         ret = gpio_config(&conf);
@@ -654,7 +820,7 @@ static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev)
     }
 
     if (dev->reset_pin >= 0) {
-        gpio_config_t conf = { 0 };
+        gpio_config_t conf = {0};
         conf.pin_bit_mask = 1LL << dev->reset_pin;
         conf.mode = GPIO_MODE_OUTPUT;
         ret = gpio_config(&conf);
@@ -669,8 +835,10 @@ static esp_err_t imx500_power_on(esp_cam_sensor_device_t *dev)
     return ret;
 }
 
-static esp_err_t imx500_power_off(esp_cam_sensor_device_t *dev)
-{
+static esp_err_t imx500_power_off(esp_cam_sensor_device_t *dev) {
+    return ESP_OK;
+
+    printf("%s(%d)\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
 
     if (dev->xclk_pin >= 0) {
@@ -694,8 +862,8 @@ static esp_err_t imx500_power_off(esp_cam_sensor_device_t *dev)
     return ret;
 }
 
-static esp_err_t imx500_delete(esp_cam_sensor_device_t *dev)
-{
+static esp_err_t imx500_delete(esp_cam_sensor_device_t *dev) {
+    printf("%s(%d)\n", __func__, __LINE__);
     ESP_LOGD(TAG, "del imx500 (%p)", dev);
     if (dev) {
         free(dev);
@@ -714,12 +882,11 @@ static const esp_cam_sensor_ops_t imx500_ops = {
     .set_format = imx500_set_format,
     .get_format = imx500_get_format,
     .priv_ioctl = imx500_priv_ioctl,
-    .del = imx500_delete
-};
+    .del = imx500_delete};
 
 // We need manage these devices, and maybe need to add it into the private member of esp_device
-esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config)
-{
+esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config) {
+    printf("%s(%d)\n", __func__, __LINE__);
     esp_cam_sensor_device_t *dev = NULL;
 
     if (config == NULL) {
@@ -769,10 +936,10 @@ err_free_handler:
     return NULL;
 }
 
-#if CONFIG_CAMERA_IMX500_AUTO_DETECT_MIPI_INTERFACE_SENSOR
-ESP_CAM_SENSOR_DETECT_FN(imx500_detect, ESP_CAM_SENSOR_MIPI_CSI, IMX500_SCCB_ADDR)
-{
+// #if CONFIG_CAMERA_IMX500_AUTO_DETECT_MIPI_INTERFACE_SENSOR
+ESP_CAM_SENSOR_DETECT_FN(imx500_detect, ESP_CAM_SENSOR_MIPI_CSI, IMX500_SCCB_ADDR) {
+    printf("%s(%d)\n", __func__, __LINE__);
     ((esp_cam_sensor_config_t *)config)->sensor_port = ESP_CAM_SENSOR_MIPI_CSI;
     return imx500_detect(config);
 }
-#endif
+// #endif

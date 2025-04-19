@@ -255,6 +255,7 @@ static const imx500_reginfo_t imx500_input_MIPI_2lane_2028x1520_regs[] = {
         {0x0213, 0x00 },
         {0x0214, 0x01 },
         {0x0215, 0x00 },
+        {0xffff, 0x00 },
     };
 
 /* 如果你想使用底板的ISP，请提供ISP信息 */
