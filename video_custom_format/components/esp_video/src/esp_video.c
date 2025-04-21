@@ -1167,7 +1167,6 @@ struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video,
     if (!stream) {
         return NULL;
     }
-    printf("%s(%d)\n", __func__, __LINE__);
 
     // 如果设备支持M2M视频处理
     if (video->device_caps & V4L2_CAP_VIDEO_M2M) {
@@ -1196,11 +1195,9 @@ struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video,
         return NULL;
     }
 #endif
-printf("%s(%d)\n", __func__, __LINE__);
 
     // 获取已完成的元素
     element = esp_video_get_done_element(video, type);
-    printf("%s(%d)\n", __func__, __LINE__);
 
     return element;
 }

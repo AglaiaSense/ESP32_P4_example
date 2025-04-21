@@ -230,10 +230,9 @@ static esp_err_t camera_capture_stream(void) {
         } 
 
         frame_size += buf.bytesused;
-        
+
         printf("frame_size: %" PRIu32 "\n", frame_size);
 
-        printf("%s(%d)\n", __func__, __LINE__);
 
         if (ioctl(fd, VIDIOC_QBUF, &buf) != 0) {
             ESP_LOGI(TAG, "failed to queue video frame");
@@ -242,15 +241,12 @@ static esp_err_t camera_capture_stream(void) {
         }
 
         frame_count++;
-        printf("%s(%d)\n", __func__, __LINE__);
 
     }
 
     // 停止视频流
     if (ioctl(fd, VIDIOC_STREAMOFF, &type) != 0) {
         ESP_LOGI(TAG, "failed to stop stream");
-        printf("%s(%d)\n", __func__, __LINE__);
-
         ret = ESP_FAIL;
         goto exit_0;
     }

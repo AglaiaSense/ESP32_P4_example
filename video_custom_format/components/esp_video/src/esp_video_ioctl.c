@@ -185,18 +185,15 @@ static esp_err_t esp_video_ioctl_dqbuf(struct esp_video *video, struct v4l2_buff
     if (ret != ESP_OK) {
         return ret;
     }
-    printf("%s(%d)\n", __func__, __LINE__);
 
     if (vbuf->memory != info.memory_type) {
         return ESP_ERR_INVALID_ARG;
     }
-    printf("%s(%d)\n", __func__, __LINE__);
 
     element = esp_video_recv_element(video, vbuf->type, ticks);
     if (!element) {
         return ESP_FAIL;
     }
-    printf("%s(%d)\n", __func__, __LINE__);
 
     vbuf->flags     = 0;
     vbuf->index     = element->index;

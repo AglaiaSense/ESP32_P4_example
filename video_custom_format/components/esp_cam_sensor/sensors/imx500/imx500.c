@@ -165,13 +165,44 @@ static const esp_cam_sensor_format_t imx500_format_info[] = {
 };
 
 static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf) {
-    return esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
-}
 
+    esp_err_t ret = esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
+
+    printf("imx500_read: reg=0x%04x, data=0x%02x\n", reg, *read_buf);
+
+    return ret;
+}
 static esp_err_t imx500_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data) {
-    printf("reg=0x%04x, data=0x%02x\n", reg, data);
+    // printf("imx500_write: reg=0x%04x, data=0x%02x\n", reg, data);
 
     return esp_sccb_transmit_reg_a16v8(sccb_handle, reg, data);
+}
+
+static esp_err_t imx500_read_array(esp_sccb_io_handle_t sccb_handle, const imx500_reginfo_t *regarray) {
+    // 打印函数名和行号
+    printf("%s(%d)\n", __func__, __LINE__);
+
+    int i = 0;
+    esp_err_t ret = ESP_OK;
+    uint8_t reg_data = 0;
+
+    // 循环写入寄存器数组中的每个寄存器
+    while ((ret == ESP_OK) && regarray[i].reg != IMX500_REG_END) {
+        if (regarray[i].reg != IMX500_REG_DELAY) {
+            // 如果寄存器不是延迟寄存器，则写入寄存器值
+            ret = imx500_read(sccb_handle, regarray[i].reg, &reg_data);
+        } else {
+            // 如果寄存器是延迟寄存器，则延迟指定的毫秒数
+            delay_ms(regarray[i].val);
+        }
+        i++;
+    }
+    // 打印写入寄存器的数量
+    ESP_LOGD(TAG, "count=%d", i);
+    printf("count=%d\n", i);
+
+    return ret;
+
 }
 
 static esp_err_t imx500_write_array(esp_sccb_io_handle_t sccb_handle, const imx500_reginfo_t *regarray) {
@@ -193,7 +224,10 @@ static esp_err_t imx500_write_array(esp_sccb_io_handle_t sccb_handle, const imx5
     }
     // 打印写入寄存器的数量
     ESP_LOGD(TAG, "count=%d", i);
+    printf("count=%d\n", i);
+
     return ret;
+
 }
 static esp_err_t imx500_set_reg_bits(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t offset, uint8_t length, uint8_t value) {
     printf("%s(%d)\n", __func__, __LINE__);
@@ -241,11 +275,13 @@ static esp_err_t imx500_soft_reset(esp_cam_sensor_device_t *dev) {
 
 static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sensor_id_t *id) {
     printf("%s(%d)\n", __func__, __LINE__);
-    return ESP_OK;
+    // return ESP_OK;
 
     uint8_t pid_h, pid_l;
+
     esp_err_t ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_H, &pid_h);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_h failed");
+    printf("----------------------------------------\n");
 
     ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_L, &pid_l);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_l failed");
@@ -254,6 +290,7 @@ static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
     if (pid) {
         id->pid = pid;
     }
+
     return ret;
 }
 
@@ -269,32 +306,32 @@ static esp_err_t imx500_set_stream(esp_cam_sensor_device_t *dev, int enable) {
     printf("%s(%d)\n", __func__, __LINE__);
 
     esp_err_t ret;
-//     uint8_t val = IMX500_MIPI_CTRL00_BUS_IDLE;
-//     if (enable) {
-// #if CSI2_NONCONTINUOUS_CLOCK
-//         // 如果启用流且使用非连续时钟，则设置时钟门控和行同步使能
-//         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_LINE_SYNC_ENABLE;
-// #endif
-//     } else {
-//         // 如果禁用流，则设置时钟门控和时钟通道禁用
-//         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_CLOCK_LANE_DISABLE;
-//     }
+    //     uint8_t val = IMX500_MIPI_CTRL00_BUS_IDLE;
+    //     if (enable) {
+    // #if CSI2_NONCONTINUOUS_CLOCK
+    //         // 如果启用流且使用非连续时钟，则设置时钟门控和行同步使能
+    //         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_LINE_SYNC_ENABLE;
+    // #endif
+    //     } else {
+    //         // 如果禁用流，则设置时钟门控和时钟通道禁用
+    //         val |= IMX500_MIPI_CTRL00_CLOCK_LANE_GATE | IMX500_MIPI_CTRL00_CLOCK_LANE_DISABLE;
+    //     }
 
-//     // 写入寄存器0x4800，设置CSI行同步使能
-//     ret = imx500_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
-//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+    //     // 写入寄存器0x4800，设置CSI行同步使能
+    //     ret = imx500_write(dev->sccb_handle, 0x4800, CONFIG_CAMERA_IMX500_CSI_LINESYNC_ENABLE ? 0x14 : 0x00);
+    //     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-// #if CONFIG_CAMERA_IMX500_ISP_AF_ENABLE
-//     // 如果启用ISP自动对焦，则写入相关寄存器
-//     ret = imx500_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
-//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+    // #if CONFIG_CAMERA_IMX500_ISP_AF_ENABLE
+    //     // 如果启用ISP自动对焦，则写入相关寄存器
+    //     ret = imx500_write(dev->sccb_handle, 0x3002, enable ? 0x01 : 0x00);
+    //     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-//     ret = imx500_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
-//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+    //     ret = imx500_write(dev->sccb_handle, 0x3010, enable ? 0x01 : 0x00);
+    //     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
 
-//     ret = imx500_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
-//     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
-// #endif
+    //     ret = imx500_write(dev->sccb_handle, 0x300D, enable ? 0x01 : 0x00);
+    //     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write pad out failed");
+    // #endif
 
     // 写入寄存器0x0100，启用或禁用流
     ret = imx500_write(dev->sccb_handle, 0x0100, enable ? 0x01 : 0x00);
@@ -351,7 +388,6 @@ static esp_err_t imx500_set_vflip(esp_cam_sensor_device_t *dev, int enable) {
 static esp_err_t imx500_set_AE_target(esp_cam_sensor_device_t *dev, int target) {
     printf("%s(%d)\n", __func__, __LINE__);
     return ESP_OK;
-
 
     esp_err_t ret = ESP_OK;
     /* 稳定在高位 */
@@ -586,7 +622,7 @@ static int imx500_get_vts(esp_cam_sensor_device_t *dev) {
 
 static int imx500_get_light_freq(esp_cam_sensor_device_t *dev) {
     return 60;
-    
+
     printf("%s(%d)\n", __func__, __LINE__);
     /* get banding filter value */
     uint8_t temp, temp1;
@@ -744,7 +780,6 @@ static esp_err_t imx500_priv_ioctl(esp_cam_sensor_device_t *dev, uint32_t cmd, v
 
     // 检查指针是否为空
     ESP_CAM_SENSOR_NULL_POINTER_CHECK(TAG, dev);
-   
 
     esp_err_t ret = ESP_FAIL;
     uint8_t regval;
@@ -917,6 +952,10 @@ esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config) {
         ESP_LOGE(TAG, "Camera power on failed");
         goto err_free_handler;
     }
+
+ 
+
+    imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
 
     if (imx500_get_sensor_id(dev, &dev->id) != ESP_OK) {
         ESP_LOGE(TAG, "Get sensor ID failed");

@@ -165,7 +165,13 @@ static const esp_cam_sensor_format_t ov5647_format_info[] = {
 };
 
 static esp_err_t ov5647_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t *read_buf) {
-    return esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
+
+
+    esp_err_t ret =  esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
+
+    printf("ov5647_read:reg=0x%04x, data=0x%02x\n", reg, *read_buf);
+
+    return ret;
 }
 
 static esp_err_t ov5647_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data) {
@@ -175,6 +181,7 @@ static esp_err_t ov5647_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, ui
 /* write a array of registers */
 static esp_err_t ov5647_write_array(esp_sccb_io_handle_t sccb_handle, const ov5647_reginfo_t *regarray) {
     printf("%s(%d)\n", __func__, __LINE__);
+
 
     int i = 0;
     esp_err_t ret = ESP_OK;
@@ -239,6 +246,7 @@ static esp_err_t ov5647_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
     esp_err_t ret = ov5647_read(dev->sccb_handle, OV5647_REG_SENSOR_ID_H, &pid_h);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_h failed");
 
+ 
     ret = ov5647_read(dev->sccb_handle, OV5647_REG_SENSOR_ID_L, &pid_l);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_l failed");
 
@@ -246,6 +254,13 @@ static esp_err_t ov5647_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
     if (pid) {
         id->pid = pid;
     }
+
+
+     ret = ov5647_read(dev->sccb_handle, 0x3035, &pid_h);
+     printf("----------------------------------------\n");
+    printf("pid_h=0x%02x\n", pid_h);
+
+
     return ret;
 }
 
@@ -572,6 +587,8 @@ static esp_err_t ov5647_set_format(esp_cam_sensor_device_t *dev, const esp_cam_s
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "set ae target failed");
     ov5647_set_bandingfilter(dev);
 
+    printf("format 2 :%s\n", format->name);
+
     // stop stream default
     ret = ov5647_set_stream(dev, 0);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "write stream regs failed");
@@ -739,6 +756,7 @@ static const esp_cam_sensor_ops_t ov5647_ops = {
 // We need manage these devices, and maybe need to add it into the private member of esp_device
 esp_cam_sensor_device_t *ov5647_detect(esp_cam_sensor_config_t *config) {
     printf("%s(%d)\n", __func__, __LINE__);
+    
 
     esp_cam_sensor_device_t *dev = NULL;
 
@@ -779,6 +797,8 @@ esp_cam_sensor_device_t *ov5647_detect(esp_cam_sensor_config_t *config) {
         goto err_free_handler;
     }
     ESP_LOGI(TAG, "Detected Camera sensor PID=0x%x", dev->id.pid);
+
+
 
     return dev;
 
