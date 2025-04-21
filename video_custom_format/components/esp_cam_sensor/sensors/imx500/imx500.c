@@ -168,12 +168,12 @@ static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uin
 
     esp_err_t ret = esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
 
-    printf("imx500_read: reg=0x%04x, data=0x%02x\n", reg, *read_buf);
+    // printf("imx500_read: reg=0x%04x, data=0x%02x\n", reg, *read_buf);
 
     return ret;
 }
 static esp_err_t imx500_write(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uint8_t data) {
-    // printf("imx500_write: reg=0x%04x, data=0x%02x\n", reg, data);
+    printf("imx500_write: reg=0x%04x, data=0x%02x\n", reg, data);
 
     return esp_sccb_transmit_reg_a16v8(sccb_handle, reg, data);
 }
@@ -281,8 +281,7 @@ static esp_err_t imx500_get_sensor_id(esp_cam_sensor_device_t *dev, esp_cam_sens
 
     esp_err_t ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_H, &pid_h);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_h failed");
-    printf("----------------------------------------\n");
-
+   
     ret = imx500_read(dev->sccb_handle, IMX500_REG_SENSOR_ID_L, &pid_l);
     ESP_RETURN_ON_FALSE(ret == ESP_OK, ret, TAG, "read pid_l failed");
 
@@ -955,7 +954,7 @@ esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config) {
 
  
 
-    imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
+    // imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
 
     if (imx500_get_sensor_id(dev, &dev->id) != ESP_OK) {
         ESP_LOGE(TAG, "Get sensor ID failed");
