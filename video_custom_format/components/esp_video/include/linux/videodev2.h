@@ -136,23 +136,26 @@ enum v4l2_field {
 	((field) == V4L2_FIELD_SEQ_TB ||\
 	 (field) == V4L2_FIELD_SEQ_BT)
 
+/**
+ * @brief 视频缓冲区类型枚举。
+ */
 enum v4l2_buf_type {
-	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
-	V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
-	V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
-	V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
-	V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
-	V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
-	V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
-	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
-	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
-	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
-	V4L2_BUF_TYPE_SDR_OUTPUT           = 12,
-	V4L2_BUF_TYPE_META_CAPTURE         = 13,
-	V4L2_BUF_TYPE_META_OUTPUT	   = 14,
-	/* Deprecated, do not use */
-	V4L2_BUF_TYPE_PRIVATE              = 0x80,
+	V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,  /*!< 视频捕获 */
+	V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,  /*!< 视频输出 */
+	V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,  /*!< 视频叠加 */
+	V4L2_BUF_TYPE_VBI_CAPTURE          = 4,  /*!< 原始VBI捕获 */
+	V4L2_BUF_TYPE_VBI_OUTPUT           = 5,  /*!< 原始VBI输出 */
+	V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,  /*!< 切片VBI捕获 */
+	V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,  /*!< 切片VBI输出 */
+	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,  /*!< 视频输出叠加 */
+	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,  /*!< 多平面视频捕获 */
+	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10, /*!< 多平面视频输出 */
+	V4L2_BUF_TYPE_SDR_CAPTURE          = 11, /*!< SDR捕获 */
+	V4L2_BUF_TYPE_SDR_OUTPUT           = 12, /*!< SDR输出 */
+	V4L2_BUF_TYPE_META_CAPTURE         = 13, /*!< 元数据捕获 */
+	V4L2_BUF_TYPE_META_OUTPUT          = 14, /*!< 元数据输出 */
+	/* 已弃用，请勿使用 */
+	V4L2_BUF_TYPE_PRIVATE              = 0x80, /*!< 私有缓冲区类型 */
 };
 
 #define V4L2_TYPE_IS_MULTIPLANAR(type)			\
@@ -441,18 +444,19 @@ struct v4l2_capability {
 	__u32	reserved[3];
 };
 
-/* Values for 'capabilities' field */
-#define V4L2_CAP_VIDEO_CAPTURE		0x00000001  /* Is a video capture device */
-#define V4L2_CAP_VIDEO_OUTPUT		0x00000002  /* Is a video output device */
-#define V4L2_CAP_VIDEO_OVERLAY		0x00000004  /* Can do video overlay */
-#define V4L2_CAP_VBI_CAPTURE		0x00000010  /* Is a raw VBI capture device */
-#define V4L2_CAP_VBI_OUTPUT		0x00000020  /* Is a raw VBI output device */
-#define V4L2_CAP_SLICED_VBI_CAPTURE	0x00000040  /* Is a sliced VBI capture device */
-#define V4L2_CAP_SLICED_VBI_OUTPUT	0x00000080  /* Is a sliced VBI output device */
-#define V4L2_CAP_RDS_CAPTURE		0x00000100  /* RDS data capture */
-#define V4L2_CAP_VIDEO_OUTPUT_OVERLAY	0x00000200  /* Can do video output overlay */
-#define V4L2_CAP_HW_FREQ_SEEK		0x00000400  /* Can do hardware frequency seek  */
-#define V4L2_CAP_RDS_OUTPUT		0x00000800  /* Is an RDS encoder */
+/* 'capabilities'字段的值 */
+#define V4L2_CAP_VIDEO_CAPTURE		0x00000001  /* 是视频捕获设备 */
+#define V4L2_CAP_VIDEO_OUTPUT		0x00000002  /* 是视频输出设备 */
+#define V4L2_CAP_VIDEO_OVERLAY		0x00000004  /* 可以进行视频叠加 */
+#define V4L2_CAP_VBI_CAPTURE		0x00000010  /* 是原始VBI捕获设备 */
+#define V4L2_CAP_VBI_OUTPUT		0x00000020  /* 是原始VBI输出设备 */
+#define V4L2_CAP_SLICED_VBI_CAPTURE	0x00000040  /* 是切片VBI捕获设备 */
+#define V4L2_CAP_SLICED_VBI_OUTPUT	0x00000080  /* 是切片VBI输出设备 */
+#define V4L2_CAP_RDS_CAPTURE		0x00000100  /* RDS数据捕获 */
+#define V4L2_CAP_VIDEO_OUTPUT_OVERLAY	0x00000200  /* 可以进行视频输出叠加 */
+#define V4L2_CAP_HW_FREQ_SEEK		0x00000400  /* 可以进行硬件频率搜索 */
+#define V4L2_CAP_RDS_OUTPUT		0x00000800  /* 是RDS编码器 */
+
 
 /* Is a video capture device that supports multiplanar formats */
 #define V4L2_CAP_VIDEO_CAPTURE_MPLANE	0x00001000

@@ -44,16 +44,15 @@ typedef SLIST_HEAD(esp_video_buffer_list, esp_video_buffer_element) esp_video_bu
 struct esp_video_buffer;
 
 /**
- * @brief Video buffer information object.
+ * @brief 视频缓冲区信息对象。
  */
 struct esp_video_buffer_info {
-    uint32_t count;                                   /*!< Buffer count */
-    uint32_t size;                                    /*!< Buffer maximum size */
-    uint32_t align_size;                              /*!< Buffer align size in byte, if buffer capability contains of MALLOC_CAP_CACHE_ALIGNED, this value will be unused */
-    uint32_t caps;                                    /*!< Buffer capability: refer to esp_heap_caps.h MALLOC_CAP_XXX */
-    uint32_t memory_type;                             /*!< Buffer memory type: refer to v4l2_memory in videodev2.h. */
+    uint32_t count;                                   /*!< 缓冲区数量 */
+    uint32_t size;                                    /*!< 缓冲区最大大小 */
+    uint32_t align_size;                              /*!< 缓冲区对齐大小（以字节为单位），如果缓冲区能力包含MALLOC_CAP_CACHE_ALIGNED，则此值将不使用 */
+    uint32_t caps;                                    /*!< 缓冲区能力：参考esp_heap_caps.h中的MALLOC_CAP_XXX */
+    uint32_t memory_type;                             /*!< 缓冲区内存类型：参考videodev2.h中的v4l2_memory */
 };
-
 /**
  * @brief Video buffer element object.
  */

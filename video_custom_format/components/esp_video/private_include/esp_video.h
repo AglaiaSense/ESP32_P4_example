@@ -47,24 +47,24 @@ struct esp_video_stream {
 };
 
 /**
- * @brief Video object.
+ * @brief 视频对象。
  */
 struct esp_video {
-    SLIST_ENTRY(esp_video) node;            /*!< List node */
+    SLIST_ENTRY(esp_video) node;            /*!< 列表节点 */
 
-    uint8_t id;                             /*!< Video device ID */
-    const struct esp_video_ops *ops;        /*!< Video operations */
-    char *dev_name;                         /*!< Video device port name */
-    uint32_t caps;                          /*!< video physical device capabilities */
-    uint32_t device_caps;                   /*!< video software device capabilities */
+    uint8_t id;                             /*!< 视频设备ID */
+    const struct esp_video_ops *ops;        /*!< 视频操作 */
+    char *dev_name;                         /*!< 视频设备端口名称 */
+    uint32_t caps;                          /*!< 视频物理设备能力 */
+    uint32_t device_caps;                   /*!< 视频软件设备能力 */
 
-    void *priv;                             /*!< Video device private data */
+    void *priv;                             /*!< 视频设备私有数据 */
 
-    portMUX_TYPE stream_lock;               /*!< Stream list lock */
-    struct esp_video_stream *stream;        /*!< Video device stream, capture-only or output-only device has 1 stream, M2M device has 2 streams */
+    portMUX_TYPE stream_lock;               /*!< 流列表锁 */
+    struct esp_video_stream *stream;        /*!< 视频设备流，捕获设备或输出设备有1个流，M2M设备有2个流 */
 
-    SemaphoreHandle_t mutex;                /*!< Video device mutex lock */
-    uint8_t reference;                      /*!< video device open reference count */
+    SemaphoreHandle_t mutex;                /*!< 视频设备互斥锁 */
+    uint8_t reference;                      /*!< 视频设备打开引用计数 */
 };
 
 /**

@@ -4,30 +4,30 @@
  * SPDX-License-Identifier: ESPRESSIF MIT
  */
 
+#include "esp_video.h"
+#include "esp_cam_sensor.h"
+#include "esp_check.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
+#include "esp_memory_utils.h"
+#include "esp_video_vfs.h"
 #include <stdio.h>
 #include <string.h>
 #include <sys/lock.h>
-#include "esp_log.h"
-#include "esp_check.h"
-#include "esp_memory_utils.h"
-#include "esp_heap_caps.h"
-#include "esp_video.h"
-#include "esp_video_vfs.h"
-#include "esp_cam_sensor.h"
 
 #include "freertos/portmacro.h"
 
 #define ALLOC_RAM_ATTR (MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL)
 
 #if CONFIG_ESP_VIDEO_CHECK_PARAMETERS
-#define CHECK_VIDEO_OBJ(v)                                  \
-{                                                           \
-    esp_err_t __r = esp_video_check_video_obj(v);           \
-    if (__r != ESP_OK) {                                    \
-        return __r;                                         \
-    }                                                       \
-}
-#define CHECK_PARAM                         ESP_RETURN_ON_FALSE
+#define CHECK_VIDEO_OBJ(v)                            \
+    {                                                 \
+        esp_err_t __r = esp_video_check_video_obj(v); \
+        if (__r != ESP_OK) {                          \
+            return __r;                               \
+        }                                             \
+    }
+#define CHECK_PARAM ESP_RETURN_ON_FALSE
 #else
 #define CHECK_VIDEO_OBJ(v)
 #define CHECK_PARAM(...)
@@ -44,32 +44,32 @@ static const char *TAG = "esp_video";
 
 static const struct esp_video_format_desc_map esp_video_format_desc_maps[] = {
     {
-        V4L2_PIX_FMT_SBGGR8, "RAW8 BGGR",
+        V4L2_PIX_FMT_SBGGR8,
+        "RAW8 BGGR",
     },
     {
-        V4L2_PIX_FMT_SBGGR10, "RAW10 BGGR",
+        V4L2_PIX_FMT_SBGGR10,
+        "RAW10 BGGR",
     },
     {
-        V4L2_PIX_FMT_SBGGR12, "RAW12 BGGR",
+        V4L2_PIX_FMT_SBGGR12,
+        "RAW12 BGGR",
     },
     {
-        V4L2_PIX_FMT_RGB565, "RGB 5-6-5",
+        V4L2_PIX_FMT_RGB565,
+        "RGB 5-6-5",
     },
     {
-        V4L2_PIX_FMT_RGB24,  "RGB 8-8-8",
+        V4L2_PIX_FMT_RGB24,
+        "RGB 8-8-8",
     },
     {
-        V4L2_PIX_FMT_YUV420, "YUV 4:2:0",
+        V4L2_PIX_FMT_YUV420,
+        "YUV 4:2:0",
     },
-    {
-        V4L2_PIX_FMT_YUV422P, "YVU 4:2:2 planar"
-    },
-    {
-        V4L2_PIX_FMT_JPEG,   "JPEG"
-    },
-    {
-        V4L2_PIX_FMT_GREY,   "Grey 8"
-    },
+    {V4L2_PIX_FMT_YUV422P, "YVU 4:2:2 planar"},
+    {V4L2_PIX_FMT_JPEG, "JPEG"},
+    {V4L2_PIX_FMT_GREY, "Grey 8"},
 };
 
 /**
@@ -82,8 +82,7 @@ static const struct esp_video_format_desc_map esp_video_format_desc_maps[] = {
  *      - ESP_OK on success
  *      - Others if failed
  */
-static esp_err_t esp_video_get_format_desc(uint32_t pixel_format, char *buffer)
-{
+static esp_err_t esp_video_get_format_desc(uint32_t pixel_format, char *buffer) {
     for (int i = 0; i < ARRAY_SIZE(esp_video_format_desc_maps); i++) {
         if (esp_video_format_desc_maps[i].pixel_format == pixel_format) {
             strcpy(buffer, esp_video_format_desc_maps[i].desc_string);
@@ -101,8 +100,7 @@ static esp_err_t esp_video_get_format_desc(uint32_t pixel_format, char *buffer)
  *
  * @return the type left shift bits
  */
-uint32_t esp_video_get_buffer_type_bits(struct esp_video *video)
-{
+uint32_t esp_video_get_buffer_type_bits(struct esp_video *video) {
     uint32_t buffer_type_bits = 0;
 
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
@@ -127,8 +125,7 @@ uint32_t esp_video_get_buffer_type_bits(struct esp_video *video)
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_stream_buffer(struct esp_video *video, enum v4l2_buf_type type, struct esp_video_buffer *buffer)
-{
+esp_err_t esp_video_set_stream_buffer(struct esp_video *video, enum v4l2_buf_type type, struct esp_video_buffer *buffer) {
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
         if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
             if (video->stream) {
@@ -172,8 +169,7 @@ esp_err_t esp_video_set_stream_buffer(struct esp_video *video, enum v4l2_buf_typ
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_priv_data(struct esp_video *video, void *priv)
-{
+esp_err_t esp_video_set_priv_data(struct esp_video *video, void *priv) {
     if (!video) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -183,38 +179,48 @@ esp_err_t esp_video_set_priv_data(struct esp_video *video, void *priv)
 }
 
 /**
- * @brief Get video stream object pointer by stream type.
+ * @brief 获取视频流对象指针通过流类型。
  *
- * @param video  Video object
- * @param type   Video stream type
+ * @param video 视频对象
+ * @param type 视频流类型
  *
- * @return Video stream object pointer
+ * @return 视频流对象指针
  */
-struct esp_video_stream *IRAM_ATTR esp_video_get_stream(struct esp_video *video, enum v4l2_buf_type type)
-{
-    printf("%s(%d)\n", __func__, __LINE__);
-
+struct esp_video_stream *IRAM_ATTR esp_video_get_stream(struct esp_video *video, enum v4l2_buf_type type) {
+    printf("-----------------------------------\n");
     struct esp_video_stream *stream = NULL;
 
+    // 检查视频设备是否支持视频捕获
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
         if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
             stream = video->stream;
+            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_VIDEO_OUTPUT) {
+        // 检查视频设备是否支持视频输出
         if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
             stream = video->stream;
+            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_VIDEO_M2M) {
+        // 检查视频设备是否支持视频内存到内存传输
         if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
             stream = &video->stream[0];
+            printf("%s(%d)\n", __func__, __LINE__);
+
         } else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
             stream = &video->stream[1];
+            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_META_CAPTURE) {
+         // 检查视频设备是否支持元数据捕获
         if (type == V4L2_BUF_TYPE_META_CAPTURE) {
             stream = &video->stream[0];
+            printf("%s(%d)\n", __func__, __LINE__);
         }
     }
+    printf("stream->buffer->info.size=%lu\n", stream->buf_info.count);
+    printf("stream->buffer->info.align_size=%lu\n", stream->buf_info.align_size);
 
     return stream;
 }
@@ -226,8 +232,7 @@ struct esp_video_stream *IRAM_ATTR esp_video_get_stream(struct esp_video *video,
  *
  * @return Video object pointer if found by name
  */
-struct esp_video *esp_video_device_get_object(const char *name)
-{
+struct esp_video *esp_video_device_get_object(const char *name) {
     struct esp_video *video;
 
     _lock_acquire(&s_video_lock);
@@ -253,8 +258,7 @@ struct esp_video *esp_video_device_get_object(const char *name)
  *      - ESP_OK on success
  *      - Others if failed
  */
-static esp_err_t esp_video_check_video_obj(struct esp_video *video)
-{
+static esp_err_t esp_video_check_video_obj(struct esp_video *video) {
     bool found = false;
     struct esp_video *it;
 
@@ -296,8 +300,7 @@ static esp_err_t esp_video_check_video_obj(struct esp_video *video)
  *      - NULL if failed
  */
 struct esp_video *esp_video_create(const char *name, uint8_t id, const struct esp_video_ops *ops,
-                                   void *priv, uint32_t caps, uint32_t device_caps)
-{
+                                   void *priv, uint32_t caps, uint32_t device_caps) {
     esp_err_t ret;
     struct esp_video *video;
     uint32_t size;
@@ -394,8 +397,7 @@ exit_0:
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_destroy(struct esp_video *video)
-{
+esp_err_t esp_video_destroy(struct esp_video *video) {
     esp_err_t ret;
     char vfs_name[8];
 
@@ -434,8 +436,7 @@ fail_0:
  *      - Video object pointer on success
  *      - NULL if failed
  */
-struct esp_video *esp_video_open(const char *name)
-{
+struct esp_video *esp_video_open(const char *name) {
     esp_err_t ret;
     bool found = false;
     struct esp_video *video;
@@ -499,8 +500,7 @@ exit_0:
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_close(struct esp_video *video)
-{
+esp_err_t esp_video_close(struct esp_video *video) {
     printf("%s: %d\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
 
@@ -554,8 +554,7 @@ exit_0:
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_start_capture(struct esp_video *video, uint32_t type)
-{
+esp_err_t esp_video_start_capture(struct esp_video *video, uint32_t type) {
     esp_err_t ret;
     struct esp_video_stream *stream;
 
@@ -596,8 +595,7 @@ esp_err_t esp_video_start_capture(struct esp_video *video, uint32_t type)
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_stop_capture(struct esp_video *video, uint32_t type)
-{
+esp_err_t esp_video_stop_capture(struct esp_video *video, uint32_t type) {
     printf("%s: %d\n", __func__, __LINE__);
     esp_err_t ret;
     struct esp_video_stream *stream;
@@ -656,8 +654,7 @@ esp_err_t esp_video_stop_capture(struct esp_video *video, uint32_t type)
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_enum_format(struct esp_video *video, uint32_t type, uint32_t index, struct esp_video_format_desc *desc)
-{
+esp_err_t esp_video_enum_format(struct esp_video *video, uint32_t type, uint32_t index, struct esp_video_format_desc *desc) {
     esp_err_t ret;
     struct esp_video_stream *stream;
 
@@ -698,8 +695,7 @@ esp_err_t esp_video_enum_format(struct esp_video *video, uint32_t type, uint32_t
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_format(struct esp_video *video, struct v4l2_format *format)
-{
+esp_err_t esp_video_get_format(struct esp_video *video, struct v4l2_format *format) {
     struct esp_video_stream *stream;
 
     CHECK_VIDEO_OBJ(video);
@@ -725,8 +721,7 @@ esp_err_t esp_video_get_format(struct esp_video *video, struct v4l2_format *form
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_format(struct esp_video *video, const struct v4l2_format *format)
-{
+esp_err_t esp_video_set_format(struct esp_video *video, const struct v4l2_format *format) {
     esp_err_t ret;
     struct esp_video_stream *stream;
 
@@ -761,8 +756,7 @@ esp_err_t esp_video_set_format(struct esp_video *video, const struct v4l2_format
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_t memory_type, uint32_t count)
-{
+esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_t memory_type, uint32_t count) {
     printf("%s: %d\n", __func__, __LINE__);
     struct esp_video_stream *stream;
     struct esp_video_buffer_info *info;
@@ -827,8 +821,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, struct esp_video_buffer_info *info)
-{
+esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, struct esp_video_buffer_info *info) {
     printf("%s(%d)\n", __func__, __LINE__);
 
     struct esp_video_stream *stream;
@@ -838,7 +831,7 @@ esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, stru
 
     stream = esp_video_get_stream(video, type);
     if (!stream) {
-    printf("%s(%d)\n", __func__, __LINE__);
+        printf("%s(%d)\n", __func__, __LINE__);
 
         return ESP_ERR_INVALID_ARG;
     }
@@ -859,8 +852,7 @@ esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, stru
  *      - Video buffer element object pointer on success
  *      - NULL if failed
  */
-struct esp_video_buffer_element *IRAM_ATTR esp_video_get_queued_element(struct esp_video *video, uint32_t type)
-{
+struct esp_video_buffer_element *IRAM_ATTR esp_video_get_queued_element(struct esp_video *video, uint32_t type) {
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element = NULL;
 
@@ -890,8 +882,7 @@ struct esp_video_buffer_element *IRAM_ATTR esp_video_get_queued_element(struct e
  *      - Video buffer element object pointer on success
  *      - NULL if failed
  */
-uint8_t *IRAM_ATTR esp_video_get_queued_buffer(struct esp_video *video, uint32_t type)
-{
+uint8_t *IRAM_ATTR esp_video_get_queued_buffer(struct esp_video *video, uint32_t type) {
     struct esp_video_buffer_element *element;
 
     element = esp_video_get_queued_element(video, type);
@@ -912,8 +903,7 @@ uint8_t *IRAM_ATTR esp_video_get_queued_buffer(struct esp_video *video, uint32_t
  *      - Video buffer element object pointer on success
  *      - NULL if failed
  */
-struct esp_video_buffer_element *esp_video_get_done_element(struct esp_video *video, uint32_t type)
-{
+struct esp_video_buffer_element *esp_video_get_done_element(struct esp_video *video, uint32_t type) {
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element = NULL;
 
@@ -944,33 +934,41 @@ struct esp_video_buffer_element *esp_video_get_done_element(struct esp_video *vi
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t IRAM_ATTR esp_video_done_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element)
-{
+esp_err_t IRAM_ATTR esp_video_done_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element) {
     struct esp_video_stream *stream;
 
+    // 获取视频流
     stream = esp_video_get_stream(video, type);
     if (!stream) {
         return ESP_ERR_INVALID_ARG;
     }
 
+    // 进入临界区
     portENTER_CRITICAL_SAFE(&video->stream_lock);
     if (!ELEMENT_IS_FREE(element)) {
         portEXIT_CRITICAL_SAFE(&video->stream_lock);
         return ESP_ERR_INVALID_ARG;
     }
 
+    // 设置元素为已分配状态
     ELEMENT_SET_ALLOCATED(element);
+    // 将元素插入到done_list中
     SLIST_INSERT_HEAD(&stream->done_list, element, node);
+    // 退出临界区
     portEXIT_CRITICAL_SAFE(&video->stream_lock);
     printf("%s: %d\n", __func__, __LINE__);
+
+    // 如果在中断上下文中
     if (xPortInIsrContext()) {
         BaseType_t wakeup = pdFALSE;
 
+        // 从ISR中释放信号量
         xSemaphoreGiveFromISR(stream->ready_sem, &wakeup);
         if (wakeup == pdTRUE) {
             portYIELD_FROM_ISR();
         }
     } else {
+        // 释放信号量
         xSemaphoreGive(stream->ready_sem);
     }
 
@@ -989,8 +987,7 @@ esp_err_t IRAM_ATTR esp_video_done_element(struct esp_video *video, uint32_t typ
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t IRAM_ATTR esp_video_done_buffer(struct esp_video *video, uint32_t type, uint8_t *buffer, uint32_t n)
-{
+esp_err_t IRAM_ATTR esp_video_done_buffer(struct esp_video *video, uint32_t type, uint8_t *buffer, uint32_t n) {
     esp_err_t ret;
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element;
@@ -1025,8 +1022,7 @@ esp_err_t IRAM_ATTR esp_video_done_buffer(struct esp_video *video, uint32_t type
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_queue_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element)
-{
+esp_err_t esp_video_queue_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element) {
     uint32_t val = type;
     struct esp_video_stream *stream;
 
@@ -1063,8 +1059,7 @@ esp_err_t esp_video_queue_element(struct esp_video *video, uint32_t type, struct
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_queue_element_index(struct esp_video *video, uint32_t type, int index)
-{
+esp_err_t esp_video_queue_element_index(struct esp_video *video, uint32_t type, int index) {
     esp_err_t ret;
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element;
@@ -1094,8 +1089,7 @@ esp_err_t esp_video_queue_element_index(struct esp_video *video, uint32_t type, 
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_queue_element_index_buffer(struct esp_video *video, uint32_t type, int index, uint8_t *buffer, uint32_t size)
-{
+esp_err_t esp_video_queue_element_index_buffer(struct esp_video *video, uint32_t type, int index, uint8_t *buffer, uint32_t size) {
     esp_err_t ret;
     struct esp_video_stream *stream;
     struct esp_video_buffer_info *info;
@@ -1110,8 +1104,8 @@ esp_err_t esp_video_queue_element_index_buffer(struct esp_video *video, uint32_t
     info = &stream->buffer->info;
 
     if ((info->memory_type != V4L2_MEMORY_USERPTR) ||
-            (((uintptr_t)buffer) % info->align_size) ||
-            (size < info->size)) {
+        (((uintptr_t)buffer) % info->align_size) ||
+        (size < info->size)) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -1144,8 +1138,7 @@ esp_err_t esp_video_queue_element_index_buffer(struct esp_video *video, uint32_t
  *      - ESP_OK on success
  *      - Others if failed
  */
-uint8_t *esp_video_get_element_index_payload(struct esp_video *video, uint32_t type, int index)
-{
+uint8_t *esp_video_get_element_index_payload(struct esp_video *video, uint32_t type, int index) {
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element;
 
@@ -1169,20 +1162,20 @@ uint8_t *esp_video_get_element_index_payload(struct esp_video *video, uint32_t t
  *      - 成功时返回视频缓冲区元素对象指针
  *      - 失败时返回NULL
  */
-struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video, uint32_t type, uint32_t ticks)
-{
-    printf("%s(%d)\n", __func__, __LINE__);
+struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video, uint32_t type, uint32_t ticks) {
 
     BaseType_t ret;
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element;
     uint32_t val = type;
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 获取视频流
     stream = esp_video_get_stream(video, type);
     if (!stream) {
         return NULL;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
     // 如果设备支持M2M视频处理
     if (video->device_caps & V4L2_CAP_VIDEO_M2M) {
@@ -1234,8 +1227,7 @@ esp_err_t esp_video_queue_m2m_elements(struct esp_video *video,
                                        uint32_t src_type,
                                        struct esp_video_buffer_element *src_element,
                                        uint32_t dst_type,
-                                       struct esp_video_buffer_element *dst_element)
-{
+                                       struct esp_video_buffer_element *dst_element) {
     esp_err_t ret;
     struct esp_video_stream *stream[2];
 
@@ -1283,8 +1275,7 @@ esp_err_t esp_video_done_m2m_elements(struct esp_video *video,
                                       uint32_t src_type,
                                       struct esp_video_buffer_element *src_element,
                                       uint32_t dst_type,
-                                      struct esp_video_buffer_element *dst_element)
-{
+                                      struct esp_video_buffer_element *dst_element) {
     esp_err_t ret;
     bool user_node = true;
     struct esp_video_stream *stream[2];
@@ -1349,11 +1340,10 @@ esp_err_t esp_video_done_m2m_elements(struct esp_video *video,
  *      - Others if failed
  */
 esp_err_t esp_video_get_m2m_queued_elements(struct esp_video *video,
-        uint32_t src_type,
-        struct esp_video_buffer_element **src_element,
-        uint32_t dst_type,
-        struct esp_video_buffer_element **dst_element)
-{
+                                            uint32_t src_type,
+                                            struct esp_video_buffer_element **src_element,
+                                            uint32_t dst_type,
+                                            struct esp_video_buffer_element **dst_element) {
     esp_err_t ret;
     struct esp_video_stream *stream[2];
 
@@ -1397,8 +1387,7 @@ esp_err_t esp_video_get_m2m_queued_elements(struct esp_video *video,
  *      - Video buffer element object pointer on success
  *      - NULL if failed
  */
-struct esp_video_buffer_element *esp_video_clone_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element)
-{
+struct esp_video_buffer_element *esp_video_clone_element(struct esp_video *video, uint32_t type, struct esp_video_buffer_element *element) {
     struct esp_video_buffer_element *new_element;
 
     new_element = esp_video_get_done_element(video, type);
@@ -1421,8 +1410,7 @@ struct esp_video_buffer_element *esp_video_clone_element(struct esp_video *video
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_buf_type(struct esp_video *video, uint32_t *type, bool is_input)
-{
+esp_err_t esp_video_get_buf_type(struct esp_video *video, uint32_t *type, bool is_input) {
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
         if (is_input) {
             return ESP_ERR_INVALID_ARG;
@@ -1435,7 +1423,7 @@ esp_err_t esp_video_get_buf_type(struct esp_video *video, uint32_t *type, bool i
         }
 
         *type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-    }  else if (video->caps & V4L2_CAP_VIDEO_M2M) {
+    } else if (video->caps & V4L2_CAP_VIDEO_M2M) {
         if (is_input) {
             *type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
         } else {
@@ -1458,8 +1446,7 @@ esp_err_t esp_video_get_buf_type(struct esp_video *video, uint32_t *type, bool i
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_ext_controls(struct esp_video *video, const struct v4l2_ext_controls *ctrls)
-{
+esp_err_t esp_video_set_ext_controls(struct esp_video *video, const struct v4l2_ext_controls *ctrls) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1490,8 +1477,7 @@ esp_err_t esp_video_set_ext_controls(struct esp_video *video, const struct v4l2_
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_ext_controls(struct esp_video *video, struct v4l2_ext_controls *ctrls)
-{
+esp_err_t esp_video_get_ext_controls(struct esp_video *video, struct v4l2_ext_controls *ctrls) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1522,8 +1508,7 @@ esp_err_t esp_video_get_ext_controls(struct esp_video *video, struct v4l2_ext_co
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_query_ext_control(struct esp_video *video, struct v4l2_query_ext_ctrl *qctrl)
-{
+esp_err_t esp_video_query_ext_control(struct esp_video *video, struct v4l2_query_ext_ctrl *qctrl) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1556,8 +1541,7 @@ esp_err_t esp_video_query_ext_control(struct esp_video *video, struct v4l2_query
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_m2m_process(struct esp_video *video, uint32_t src_type, uint32_t dst_type, esp_video_m2m_process_t proc)
-{
+esp_err_t esp_video_m2m_process(struct esp_video *video, uint32_t src_type, uint32_t dst_type, esp_video_m2m_process_t proc) {
     esp_err_t ret;
     uint32_t dst_out_size;
     struct esp_video_buffer_element *dst_element;
@@ -1599,8 +1583,7 @@ esp_err_t esp_video_m2m_process(struct esp_video *video, uint32_t src_type, uint
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_sensor_format(struct esp_video *video, const esp_cam_sensor_format_t *format)
-{
+esp_err_t esp_video_set_sensor_format(struct esp_video *video, const esp_cam_sensor_format_t *format) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1629,8 +1612,7 @@ esp_err_t esp_video_set_sensor_format(struct esp_video *video, const esp_cam_sen
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_sensor_format(struct esp_video *video, esp_cam_sensor_format_t *format)
-{
+esp_err_t esp_video_get_sensor_format(struct esp_video *video, esp_cam_sensor_format_t *format) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1659,8 +1641,7 @@ esp_err_t esp_video_get_sensor_format(struct esp_video *video, esp_cam_sensor_fo
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_query_menu(struct esp_video *video, struct v4l2_querymenu *qmenu)
-{
+esp_err_t esp_video_query_menu(struct esp_video *video, struct v4l2_querymenu *qmenu) {
     esp_err_t ret;
 
     CHECK_VIDEO_OBJ(video);
@@ -1689,8 +1670,7 @@ esp_err_t esp_video_query_menu(struct esp_video *video, struct v4l2_querymenu *q
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_owner(struct esp_video *video, int owner)
-{
+esp_err_t esp_video_set_owner(struct esp_video *video, int owner) {
     esp_err_t ret = ESP_ERR_INVALID_ARG;
 
     CHECK_VIDEO_OBJ(video);
@@ -1724,8 +1704,7 @@ esp_err_t esp_video_set_owner(struct esp_video *video, int owner)
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_set_selection(struct esp_video *video, struct v4l2_selection *selection)
-{
+esp_err_t esp_video_set_selection(struct esp_video *video, struct v4l2_selection *selection) {
     esp_err_t ret;
     struct esp_video_stream *stream;
 
@@ -1762,8 +1741,7 @@ esp_err_t esp_video_set_selection(struct esp_video *video, struct v4l2_selection
  *      - ESP_OK on success
  *      - Others if failed
  */
-esp_err_t esp_video_get_selection(struct esp_video *video, struct v4l2_selection *selection)
-{
+esp_err_t esp_video_get_selection(struct esp_video *video, struct v4l2_selection *selection) {
     struct esp_video_stream *stream;
 
     CHECK_VIDEO_OBJ(video);
