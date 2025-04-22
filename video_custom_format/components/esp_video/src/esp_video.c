@@ -192,6 +192,8 @@ esp_err_t esp_video_set_priv_data(struct esp_video *video, void *priv)
  */
 struct esp_video_stream *IRAM_ATTR esp_video_get_stream(struct esp_video *video, enum v4l2_buf_type type)
 {
+    printf("%s(%d)\n", __func__, __LINE__);
+
     struct esp_video_stream *stream = NULL;
 
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
@@ -499,6 +501,7 @@ exit_0:
  */
 esp_err_t esp_video_close(struct esp_video *video)
 {
+    printf("%s: %d\n", __func__, __LINE__);
     esp_err_t ret = ESP_OK;
 
     CHECK_VIDEO_OBJ(video);
@@ -595,6 +598,7 @@ esp_err_t esp_video_start_capture(struct esp_video *video, uint32_t type)
  */
 esp_err_t esp_video_stop_capture(struct esp_video *video, uint32_t type)
 {
+    printf("%s: %d\n", __func__, __LINE__);
     esp_err_t ret;
     struct esp_video_stream *stream;
 
@@ -759,6 +763,7 @@ esp_err_t esp_video_set_format(struct esp_video *video, const struct v4l2_format
  */
 esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_t memory_type, uint32_t count)
 {
+    printf("%s: %d\n", __func__, __LINE__);
     struct esp_video_stream *stream;
     struct esp_video_buffer_info *info;
 
@@ -770,7 +775,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
     }
 
     /* buffer_size is configured when setting format */
-
+    printf("%s: %d\n", __func__, __LINE__);
     info = &stream->buf_info;
     if (!info->size || !info->align_size || !info->caps) {
         ESP_LOGE(TAG, "Failed to check buffer information: size=%" PRIu32 " align=%" PRIu32 " cap=%" PRIx32,
@@ -780,7 +785,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
 
     info->count = count;
     info->memory_type = memory_type;
-
+    printf("%s: %d\n", __func__, __LINE__);
     if (stream->ready_sem) {
         vSemaphoreDelete(stream->ready_sem);
         stream->ready_sem = NULL;
@@ -790,6 +795,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
         esp_video_buffer_destroy(stream->buffer);
         stream->buffer = NULL;
     }
+    printf("%s: %d\n", __func__, __LINE__);
 
     stream->ready_sem = xSemaphoreCreateCounting(info->count, 0);
     if (!stream->ready_sem) {
@@ -797,6 +803,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
         return ESP_ERR_NO_MEM;
     }
 
+    printf("%s: %d\n", __func__, __LINE__);
     stream->buffer = esp_video_buffer_create(info);
     if (!stream->buffer) {
         vSemaphoreDelete(stream->ready_sem);
@@ -804,6 +811,7 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
         ESP_LOGE(TAG, "Failed to create buffer");
         return ESP_ERR_NO_MEM;
     }
+    printf("%s: %d\n", __func__, __LINE__);
 
     return ESP_OK;
 }
@@ -821,14 +829,20 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
  */
 esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, struct esp_video_buffer_info *info)
 {
+    printf("%s(%d)\n", __func__, __LINE__);
+
     struct esp_video_stream *stream;
 
     CHECK_VIDEO_OBJ(video);
+    printf("%s(%d)\n", __func__, __LINE__);
 
     stream = esp_video_get_stream(video, type);
     if (!stream) {
+    printf("%s(%d)\n", __func__, __LINE__);
+
         return ESP_ERR_INVALID_ARG;
     }
+    printf("%s(%d)\n", __func__, __LINE__);
 
     memcpy(info, &stream->buf_info, sizeof(struct esp_video_buffer_info));
 
@@ -948,7 +962,7 @@ esp_err_t IRAM_ATTR esp_video_done_element(struct esp_video *video, uint32_t typ
     ELEMENT_SET_ALLOCATED(element);
     SLIST_INSERT_HEAD(&stream->done_list, element, node);
     portEXIT_CRITICAL_SAFE(&video->stream_lock);
-
+    printf("%s: %d\n", __func__, __LINE__);
     if (xPortInIsrContext()) {
         BaseType_t wakeup = pdFALSE;
 
@@ -1157,6 +1171,8 @@ uint8_t *esp_video_get_element_index_payload(struct esp_video *video, uint32_t t
  */
 struct esp_video_buffer_element *esp_video_recv_element(struct esp_video *video, uint32_t type, uint32_t ticks)
 {
+    printf("%s(%d)\n", __func__, __LINE__);
+
     BaseType_t ret;
     struct esp_video_stream *stream;
     struct esp_video_buffer_element *element;
