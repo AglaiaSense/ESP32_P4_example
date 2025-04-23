@@ -187,40 +187,32 @@ esp_err_t esp_video_set_priv_data(struct esp_video *video, void *priv) {
  * @return 视频流对象指针
  */
 struct esp_video_stream *IRAM_ATTR esp_video_get_stream(struct esp_video *video, enum v4l2_buf_type type) {
-    printf("-----------------------------------\n");
     struct esp_video_stream *stream = NULL;
 
     // 检查视频设备是否支持视频捕获
     if (video->caps & V4L2_CAP_VIDEO_CAPTURE) {
         if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
             stream = video->stream;
-            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_VIDEO_OUTPUT) {
         // 检查视频设备是否支持视频输出
         if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
             stream = video->stream;
-            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_VIDEO_M2M) {
         // 检查视频设备是否支持视频内存到内存传输
         if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
             stream = &video->stream[0];
-            printf("%s(%d)\n", __func__, __LINE__);
 
         } else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
             stream = &video->stream[1];
-            printf("%s(%d)\n", __func__, __LINE__);
         }
     } else if (video->caps & V4L2_CAP_META_CAPTURE) {
          // 检查视频设备是否支持元数据捕获
         if (type == V4L2_BUF_TYPE_META_CAPTURE) {
             stream = &video->stream[0];
-            printf("%s(%d)\n", __func__, __LINE__);
         }
     }
-    printf("stream->buffer->info.size=%lu\n", stream->buf_info.count);
-    printf("stream->buffer->info.align_size=%lu\n", stream->buf_info.align_size);
 
     return stream;
 }
@@ -822,20 +814,16 @@ esp_err_t esp_video_setup_buffer(struct esp_video *video, uint32_t type, uint32_
  *      - Others if failed
  */
 esp_err_t esp_video_get_buffer_info(struct esp_video *video, uint32_t type, struct esp_video_buffer_info *info) {
-    printf("%s(%d)\n", __func__, __LINE__);
 
     struct esp_video_stream *stream;
 
     CHECK_VIDEO_OBJ(video);
-    printf("%s(%d)\n", __func__, __LINE__);
 
     stream = esp_video_get_stream(video, type);
     if (!stream) {
-        printf("%s(%d)\n", __func__, __LINE__);
 
         return ESP_ERR_INVALID_ARG;
     }
-    printf("%s(%d)\n", __func__, __LINE__);
 
     memcpy(info, &stream->buf_info, sizeof(struct esp_video_buffer_info));
 

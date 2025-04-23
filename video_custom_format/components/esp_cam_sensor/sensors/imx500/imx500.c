@@ -35,40 +35,40 @@ static const char *TAG = "imx500";
 
 static const esp_cam_sensor_isp_info_t imx500_isp_info[] = {
     {.isp_v1_info = {
-         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 744000000,
-         .vts = 2028,
-         .hts = 1520,
-         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-     }},
+        .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+        .pclk = 200000000,
+        .vts = 2980,
+        .hts = 3300,
+        .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+    }},
     {.isp_v1_info = {
          .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 81666700,
-         .vts = 1896,
-         .hts = 984,
+         .pclk = 200000000,
+         .vts = 2980,
+         .hts = 3300,
          .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
      }},
+     {.isp_v1_info = {
+        .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+        .pclk = 200000000,
+        .vts = 2980,
+        .hts = 3300,
+        .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+    }},
     {.isp_v1_info = {
-         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 81666700,
-         .vts = 1896,
-         .hts = 984,
-         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-     }},
+        .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+        .pclk = 200000000,
+        .vts = 2980,
+        .hts = 3300,
+        .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+    }},
     {.isp_v1_info = {
-         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 81666700,
-         .vts = 1104,
-         .hts = 2416,
-         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-     }},
-    {.isp_v1_info = {
-         .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 88333333,
-         .vts = 1796,
-         .hts = 1093,
-         .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
-     }},
+        .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
+        .pclk = 200000000,
+        .vts = 2980,
+        .hts = 3300,
+        .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
+    }},
 };
 
 static const esp_cam_sensor_format_t imx500_format_info[] = {
@@ -94,12 +94,12 @@ static const esp_cam_sensor_format_t imx500_format_info[] = {
         .name = "MIPI_2lane_24Minput_RAW8_800x640_50fps",
         .format = ESP_CAM_SENSOR_PIXFORMAT_RAW8,
         .port = ESP_CAM_SENSOR_MIPI_CSI,
-        .xclk = 24000000,
-        .width = 800,
-        .height = 640,
+        .xclk = 27000000,
+        .width = 1920,
+        .height = 1080,
         .regs = imx500_input_24M_MIPI_2lane_raw8_800x640_50fps,
         .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x640_50fps),
-        .fps = 50,
+        .fps = 20,
         .isp_info = &imx500_isp_info[1],
         .mipi_info = {
             .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_800x640_50FPS,
@@ -168,7 +168,7 @@ static esp_err_t imx500_read(esp_sccb_io_handle_t sccb_handle, uint16_t reg, uin
 
     esp_err_t ret = esp_sccb_transmit_receive_reg_a16v8(sccb_handle, reg, read_buf);
 
-    // printf("imx500_read: reg=0x%04x, data=0x%02x\n", reg, *read_buf);
+    printf("imx500_read: reg=0x%04x, data=0x%02x\n", reg, *read_buf);
 
     return ret;
 }
@@ -577,7 +577,7 @@ static int imx500_get_sysclk(esp_cam_sensor_device_t *dev) {
  * @return int 水平总尺寸（HTS）。
  */
 static int imx500_get_hts(esp_cam_sensor_device_t *dev) {
-    return ESP_OK;
+    return 3300;
 
     // 打印函数名和行号
     printf("%s(%d)\n", __func__, __LINE__);
@@ -601,7 +601,7 @@ static int imx500_get_hts(esp_cam_sensor_device_t *dev) {
  * @return int 垂直总尺寸（VTS）。
  */
 static int imx500_get_vts(esp_cam_sensor_device_t *dev) {
-    return ESP_OK;
+    return 2980;
 
     // 打印函数名和行号
     printf("%s(%d)\n", __func__, __LINE__);
@@ -954,7 +954,7 @@ esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config) {
 
  
 
-    // imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
+    imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
 
     if (imx500_get_sensor_id(dev, &dev->id) != ESP_OK) {
         ESP_LOGE(TAG, "Get sensor ID failed");
