@@ -71,7 +71,7 @@
       //{0x0343, 0x40},
       {0x0112, 0x0A}, // 0x0A: 10bit, 0x08: 8bit
       {0x0113, 0x0A}, // 0x0A: 10bit, 0x08: 8bit
-      {0x0202, 0x11},
+      {0x0202, 0x01},
       {0x0203, 0x94},
       {0x0204, 0x03},
       {0x0205, 0x56},
@@ -122,7 +122,7 @@
      .mipi_info = {
          .mipi_clk = (100000000ULL * 4), // MIPI时钟频率
          .lane_num = 2,                  // MIPI通道数
-         .line_sync_en = true,           // 行同步使能
+         .line_sync_en = false,           // 行同步使能
      },
      .reserved = NULL, // 保留字段
  };

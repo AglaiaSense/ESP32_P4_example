@@ -43,9 +43,9 @@ static const esp_cam_sensor_isp_info_t imx500_isp_info[] = {
     }},
     {.isp_v1_info = {
          .version = SENSOR_ISP_INFO_VERSION_DEFAULT,
-         .pclk = 200000000,
+         .pclk = 210600000,
          .vts = 2980,
-         .hts = 3300,
+         .hts = 4730,
          .bayer_type = ESP_CAM_SENSOR_BAYER_GBRG,
      }},
      {.isp_v1_info = {
@@ -577,7 +577,7 @@ static int imx500_get_sysclk(esp_cam_sensor_device_t *dev) {
  * @return int 水平总尺寸（HTS）。
  */
 static int imx500_get_hts(esp_cam_sensor_device_t *dev) {
-    return 3300;
+    return 4730;
 
     // 打印函数名和行号
     printf("%s(%d)\n", __func__, __LINE__);
