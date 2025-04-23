@@ -17,12 +17,9 @@ extern "C" {
 
  #define IMX500_REG_DELAY            0xeeee  ///< 延迟寄存器
  #define IMX500_REG_END              0xffff  ///< 结束寄存器
- #define IMX500_REG_SENSOR_ID_H      0x300a  ///< 传感器ID高字节寄存器
- #define IMX500_REG_SENSOR_ID_L      0x300b  ///< 传感器ID低字节寄存器
- #define IMX500_REG_SLEEP_MODE       0x0100  ///< 睡眠模式寄存器
- #define IMX500_REG_MIPI_CTRL00      0x4800  ///< MIPI控制寄存器
- #define IMX500_REG_FRAME_OFF_NUMBER 0x4202  ///< 帧关闭编号寄存器
- #define IMX500_REG_PAD_OUT          0x300d  ///< 传感器PAD输出寄存器
+ #define IMX500_REG_SENSOR_ID_H      0x0016  ///< 传感器ID高字节寄存器
+ #define IMX500_REG_SENSOR_ID_L      0x0017  ///< 传感器ID低字节寄存器
+
 #ifdef __cplusplus
 }
 #endif

@@ -21,7 +21,7 @@
 #define IMX500_ENABLE_OUT_CLOCK(pin, clk)
 #define IMX500_DISABLE_OUT_CLOCK(pin)
 
-#define IMX500_PID 0x0
+#define IMX500_PID 0x0500
 #define IMX500_SENSOR_NAME "IMX500"
 #define IMX500_AE_TARGET_DEFAULT (0x50)
 
@@ -99,7 +99,7 @@ static const esp_cam_sensor_format_t imx500_format_info[] = {
         .height = 1080,
         .regs = imx500_input_24M_MIPI_2lane_raw8_800x640_50fps,
         .regs_size = ARRAY_SIZE(imx500_input_24M_MIPI_2lane_raw8_800x640_50fps),
-        .fps = 20,
+        .fps = 30,
         .isp_info = &imx500_isp_info[1],
         .mipi_info = {
             .mipi_clk = IMX500_MIPI_CSI_LINE_RATE_800x640_50FPS,
@@ -951,10 +951,9 @@ esp_cam_sensor_device_t *imx500_detect(esp_cam_sensor_config_t *config) {
         ESP_LOGE(TAG, "Camera power on failed");
         goto err_free_handler;
     }
-
  
 
-    imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
+    // imx500_read_array(dev->sccb_handle, imx500_input_24M_MIPI_2lane_raw8_800x640_50fps);
 
     if (imx500_get_sensor_id(dev, &dev->id) != ESP_OK) {
         ESP_LOGE(TAG, "Get sensor ID failed");

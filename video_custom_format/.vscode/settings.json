@@ -13,6 +13,7 @@
     "files.associations": {
         "*.lua": "lua",
         "*.cpp": "cpp",
-        "app_imx500_custom_settings.h": "c"
+        "app_imx500_custom_settings.h": "c",
+        "ioctl.h": "c"
     }
 }
