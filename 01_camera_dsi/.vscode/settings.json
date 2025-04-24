@@ -1,4 +1,9 @@
 {
     "idf.portWin": "COM8",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "*.lua": "lua",
+        "*.cpp": "cpp",
+        "esp_sccb_io_interface.h": "c"
+    }
 }
