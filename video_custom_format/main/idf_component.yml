@@ -1,5 +1,13 @@
 dependencies:
   idf: ">=5.3"
+  
+  esp_cam_sensor:
+    version: "1.0.*"
+    path: "../../esp_components/esp_cam_sensor"
+  esp_ipa:
+    version: "0.3.*"
+    path: "../../esp_components/esp_ipa"
+
   esp_video:
     version: "0.*"
-    path: "../components/esp_video"
+    path: "../../esp_components/esp_video"

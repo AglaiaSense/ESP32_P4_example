@@ -18,8 +18,8 @@
 #include <sys/param.h>
 
 // #include "app_sc2336_custom_settings.h"
-// #include "app_ov5647_custom_settings.h"
-#include "app_imx500_custom_settings.h"
+#include "app_ov5647_custom_settings.h"
+// #include "app_imx500_custom_settings.h"
 
 #define MEMORY_TYPE V4L2_MEMORY_MMAP
 #define BUFFER_COUNT 2
@@ -220,28 +220,27 @@ static esp_err_t camera_capture_stream(void) {
 
         buf.type = type;
         buf.memory = MEMORY_TYPE;
-        
-        printf("%s(%d)\n", __func__, __LINE__);
 
+        // 从视频设备中取出一个已填充的视频缓冲区
         if (ioctl(fd, VIDIOC_DQBUF, &buf) != 0) {
             ESP_LOGI(TAG, "failed to receive video frame");
             ret = ESP_FAIL;
             goto exit_0;
-        } 
+        }
 
         frame_size += buf.bytesused;
-
-        printf("frame_size: %" PRIu32 "\n", frame_size);
-
-
+        // 将处理完的缓冲区重新排队
         if (ioctl(fd, VIDIOC_QBUF, &buf) != 0) {
             ESP_LOGI(TAG, "failed to queue video frame");
             ret = ESP_FAIL;
             goto exit_0;
         }
 
-        frame_count++;
+        // printf("frame_size: %" PRIu32 "\n", frame_size);
 
+        printf("frame_count:  %" PRIu32 "\n", frame_count);
+
+        frame_count++;
     }
 
     // 停止视频流
@@ -261,7 +260,7 @@ static esp_err_t camera_capture_stream(void) {
     ret = ESP_OK;
 
 exit_0:
-printf("%s(%d)\n", __func__, __LINE__);
+    printf("%s(%d)\n", __func__, __LINE__);
 
     close(fd);
     return ret;

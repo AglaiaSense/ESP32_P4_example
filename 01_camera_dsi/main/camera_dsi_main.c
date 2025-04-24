@@ -152,10 +152,10 @@ void app_main(void)
 
     example_dpi_panel_init(mipi_dpi_panel);
 
-
     
- fflush(stdout);
     while (1) {
+    printf("%s(%d)\n", __func__, __LINE__);
+
         ESP_ERROR_CHECK(esp_cam_ctlr_receive(cam_handle, &new_trans, ESP_CAM_CTLR_MAX_DELAY));
     }
 }
