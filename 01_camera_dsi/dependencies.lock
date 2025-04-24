@@ -114,6 +114,6 @@ direct_dependencies:
 - idf
 - sensor_init
 - waveshare/esp_lcd_jd9365_10_1
-manifest_hash: a96802fd1849fc045f267a2707e53a6dd7c082c3b565d184f498a0579bb3f91b
+manifest_hash: 5cbe142dd414876a29f35593e9da63c4c18d00a237eca657534c900da64948dd
 target: esp32p4
 version: 2.0.0

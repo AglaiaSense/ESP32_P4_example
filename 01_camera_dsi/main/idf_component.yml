@@ -1,6 +1,10 @@
 dependencies:
+  # esp_driver_cam:
+  #   path: "../../esp_components/esp_driver_cam"
+
   idf:
-    version: ">=5.3.0"
+    version: ">=5.4.0"
+
   dsi_init:
     path: "../components/dsi_init"
   sensor_init:
