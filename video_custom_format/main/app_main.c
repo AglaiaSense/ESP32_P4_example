@@ -18,8 +18,8 @@
 #include <sys/param.h>
 
 // #include "app_sc2336_custom_settings.h"
-// #include "app_ov5647_custom_settings.h"
-#include "app_imx500_custom_settings.h"
+#include "app_ov5647_custom_settings.h"
+// #include "app_imx500_custom_settings.h"
 
 #define MEMORY_TYPE V4L2_MEMORY_MMAP
 #define BUFFER_COUNT 2
