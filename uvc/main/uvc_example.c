@@ -37,7 +37,7 @@
  #define UVC_OUTPUT_FORMAT   V4L2_PIX_FMT_H264
  #endif
  
- #define BUFFER_COUNT        4
+ #define BUFFER_COUNT        2
  
  typedef struct uvc {
      int cap_fd;

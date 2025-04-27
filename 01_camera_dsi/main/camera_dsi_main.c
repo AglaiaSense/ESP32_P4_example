@@ -165,7 +165,7 @@ static bool s_camera_get_new_vb(esp_cam_ctlr_handle_t handle, esp_cam_ctlr_trans
 
     // printf("%s(%d)\n", __func__, __LINE__);
 
-    esp_rom_printf("%s(%d)\n", __func__, __LINE__);
+    // esp_rom_printf("%s(%d)\n", __func__, __LINE__);
     
     esp_cam_ctlr_trans_t new_trans = *(esp_cam_ctlr_trans_t *)user_data;
     trans->buffer = new_trans.buffer;

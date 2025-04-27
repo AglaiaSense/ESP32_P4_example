@@ -27,12 +27,6 @@ dependencies:
     targets:
     - esp32p4
     version: 1.0.0
-  esp_driver_cam:
-    dependencies: []
-    source:
-      path: E:\03-MS500-P4\01.project_example\esp_components\esp_driver_cam
-      type: local
-    version: '*'
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -115,12 +109,11 @@ dependencies:
 direct_dependencies:
 - dsi_init
 - esp_cam_sensor
-- esp_driver_cam
 - espressif/esp_lcd_ek79007
 - espressif/esp_lcd_ili9881c
 - idf
 - sensor_init
 - waveshare/esp_lcd_jd9365_10_1
-manifest_hash: 77542dda8d236cb38ebdb0165c5f3b340914e227bcfb308d738da9ede02c0ec8
+manifest_hash: 5cbe142dd414876a29f35593e9da63c4c18d00a237eca657534c900da64948dd
 target: esp32p4
 version: 2.0.0
