@@ -1,0 +1,13 @@
+{
+    "idf.customExtraVars": {
+        "OPENOCD_SCRIPTS": "c:\\App\\Espressif\\5.3.1\\tools\\openocd-esp32\\v0.12.0-esp32-20240318/openocd-esp32/share/openocd/scripts",
+        "IDF_CCACHE_ENABLE": "1",
+        "ESP_ROM_ELF_DIR": "c:\\App\\Espressif\\5.3.1\\tools\\esp-rom-elfs\\20240305/",
+        "IDF_TARGET": "esp32p4"
+    },
+    "idf.openOcdConfigs": [
+        "board/esp32p4-builtin.cfg"
+    ],
+    "idf.portWin": "COM9",
+    "idf.flashType": "UART"
+}
