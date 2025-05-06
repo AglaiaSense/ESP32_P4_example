@@ -15,7 +15,9 @@ extern "C" {
 #endif
 
 #if CONFIG_IDF_TARGET_ESP32P4
-#define UVC_MAX_FRAMESIZE_SIZE     (140*1024)
+// #define UVC_MAX_FRAMESIZE_SIZE     (140*1024)
+#define UVC_MAX_FRAMESIZE_SIZE     (350*1024)
+
 #else
 #define UVC_MAX_FRAMESIZE_SIZE     (60*1024)
 #endif

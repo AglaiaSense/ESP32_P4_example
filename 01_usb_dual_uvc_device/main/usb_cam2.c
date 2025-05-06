@@ -37,7 +37,7 @@
      uint64_t us = (uint64_t)esp_timer_get_time();
      
      // 打开SPIFFS中的图片文件
-     FILE* file = fopen("/spiffs/esp_1280_720.jpg", "rb");
+     FILE* file = fopen("/spiffs/150.jpg", "rb");
      if (!file) {
          ESP_LOGE(TAG, "Failed to open image file");
          return NULL;
