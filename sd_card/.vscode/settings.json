@@ -9,5 +9,17 @@
         "board/esp32p4-builtin.cfg"
     ],
     "idf.portWin": "COM9",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "*.lua": "lua",
+        "*.cpp": "cpp",
+        "sd_pwr_ctrl_by_on_chip_ldo.h": "c",
+        "esp_video_device.h": "c",
+        "esp_err.h": "c",
+        "esp_timer.h": "c",
+        "esp_log.h": "c",
+        "esp_video_init.h": "c",
+        "videodev2.h": "c",
+        "xiosbase": "c"
+    }
 }

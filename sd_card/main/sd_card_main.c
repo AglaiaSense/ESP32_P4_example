@@ -16,7 +16,7 @@
 #include "esp_timer.h"
 #include "sdmmc_cmd.h"
 #include "driver/sdmmc_host.h"
-#include "sd_test_io.h"
+// #include "sd_test_io.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "linux/videodev2.h"
@@ -269,10 +269,14 @@ static esp_err_t init_codec_h264_video(image_sd_card_t *sd)
 
     ESP_ERROR_CHECK(ioctl(fd, VIDIOC_QUERYCAP, &capability));
     print_video_device_info(&capability);
-
+   // 设置H.264编码参数
     set_codec_control(fd, V4L2_CID_CODEC_CLASS, V4L2_CID_MPEG_VIDEO_H264_I_PERIOD, CONFIG_EXAMPLE_H264_I_PERIOD);
+    // 设置H.264编码比特率
     set_codec_control(fd, V4L2_CID_CODEC_CLASS, V4L2_CID_MPEG_VIDEO_BITRATE, CONFIG_EXAMPLE_H264_BITRATE);
+   // 设置H.264编码最小质量
     set_codec_control(fd, V4L2_CID_CODEC_CLASS, V4L2_CID_MPEG_VIDEO_H264_MIN_QP, CONFIG_EXAMPLE_H264_MIN_QP);
+    // 设置H.264编码最大质量
+   
     set_codec_control(fd, V4L2_CID_CODEC_CLASS, V4L2_CID_MPEG_VIDEO_H264_MAX_QP, CONFIG_EXAMPLE_H264_MAX_QP);
 
     sd->format = V4L2_PIX_FMT_H264;
@@ -292,7 +296,7 @@ static esp_err_t init_codec_mjpeg_video(image_sd_card_t *sd)
 
     ESP_ERROR_CHECK(ioctl(fd, VIDIOC_QUERYCAP, &capability));
     print_video_device_info(&capability);
-
+  // 设置JPEG压缩质量
     set_codec_control(fd, V4L2_CID_JPEG_CLASS, V4L2_CID_JPEG_COMPRESSION_QUALITY, 80);
 
     sd->format = V4L2_PIX_FMT_JPEG;
@@ -711,6 +715,7 @@ static esp_err_t store_avi_to_sd_card(image_sd_card_t *sd)
 
 
     ESP_ERROR_CHECK(example_video_start(sd));
+    
     current_time_us = esp_timer_get_time();
     current_time.tv_sec = current_time_us / 1000000UL;;
     current_time.tv_usec = current_time_us % 1000000UL;
