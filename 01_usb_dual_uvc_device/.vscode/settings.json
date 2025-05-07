@@ -8,6 +8,9 @@
         "format": "c",
         "regex": "c",
         "thread": "c",
-        "vector": "c"
+        "vector": "c",
+        "usb_device_uvc.h": "c",
+        "inttypes.h": "c",
+        "usb_cam.h": "c"
     }
 }

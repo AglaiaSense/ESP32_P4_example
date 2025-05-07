@@ -43,6 +43,12 @@
 #endif
 
 
+#define CONFIG_EXAMPLE_H264_I_PERIOD 120
+#define CONFIG_EXAMPLE_H264_BITRATE 1000000
+#define CONFIG_EXAMPLE_H264_MIN_QP 25
+#define CONFIG_EXAMPLE_H264_MAX_QP 26
+
+
 #define CAPTURE_SECONDS 10
 
 
@@ -726,7 +732,7 @@ static esp_err_t store_avi_to_sd_card(image_sd_card_t *sd)
     itoa((int)current_time.tv_usec, string, 10);
     strcat(file_name_str, "_");
     strcat(file_name_str, string);
-    strcat(file_name_str, ".bin");
+    strcat(file_name_str, ".avi");
 
     ESP_LOGI(TAG, "file name:%s", file_name_str);
 

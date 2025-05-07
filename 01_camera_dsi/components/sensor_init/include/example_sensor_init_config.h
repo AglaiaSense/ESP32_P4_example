@@ -16,7 +16,7 @@ extern "C" {
 #define EXAMPLE_CAM_SCCB_SCL_IO                 (8)
 #define EXAMPLE_CAM_SCCB_SDA_IO                 (7)
 
-#if 0
+#if 1
 #if CONFIG_EXAMPLE_MIPI_CSI_HRES_800
 #if CONFIG_EXAMPLE_MIPI_CSI_VRES_640
 #define EXAMPLE_CAM_FORMAT                     "MIPI_2lane_24Minput_RAW8_800x640_50fps"
@@ -31,7 +31,7 @@ extern "C" {
 
 #endif
 
-#define EXAMPLE_CAM_FORMAT                     "imx501_27m_1920x1080_crop_30fps"
+// #define EXAMPLE_CAM_FORMAT                     "imx501_27m_1920x1080_crop_30fps"
 
 
 
